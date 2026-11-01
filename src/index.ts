@@ -8,7 +8,7 @@ import {
 } from "./types";
 import { normalizeIP } from "./validation";
 import { docsPage, openapiDocument } from "./docs";
-import { siteResponse } from "./site";
+import { siteResponse, siteVersion } from "./site";
 const JOIN =
   "FROM ip_observations o JOIN jail_state s ON s.source=o.source AND s.jail=o.jail";
 const FIELDS =
@@ -213,7 +213,9 @@ export default {
       }
       const url = new URL(request.url);
       url.searchParams.sort();
-      const cacheKey = new Request(url.toString());
+      const cacheURL = new URL(url);
+      cacheURL.searchParams.set("__f2b_release", siteVersion);
+      const cacheKey = new Request(cacheURL.toString());
       const cache = typeof caches !== "undefined" ? caches.default : undefined;
       let result = cache ? await cache.match(cacheKey) : undefined;
       if (!result) {

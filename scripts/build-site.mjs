@@ -61,6 +61,10 @@ await writeFile(
   resolve(root, "site/generated/assets.json"),
   JSON.stringify(assets),
 );
+await writeFile(
+  resolve(root, "site/generated/version.ts"),
+  `export default "${createHash("sha256").update(JSON.stringify(assets)).digest("hex")}";\n`,
+);
 console.log(
   `INFO: ${Object.keys(assets).length} Hugo assets prepared for the existing Worker`,
 );

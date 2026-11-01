@@ -1,4 +1,5 @@
 import generated from "../site/generated/assets.json";
+export { default as siteVersion } from "../site/generated/version";
 
 interface Asset {
   body: string;
