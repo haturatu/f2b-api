@@ -77,6 +77,26 @@ beforeEach(async () => {
   ]);
 });
 describe("validation and Access", () => {
+  it("rejects special IPv4 ranges and ambiguous spellings while preserving public boundaries", () => {
+    for (const ip of [
+      "192.175.48.1",
+      "192.31.196.1",
+      "192.52.193.1",
+      "1.1",
+      "0x01010101",
+      "001.1.1.1",
+      "256.1.1.1",
+    ])
+      expect(() => normalizeIP(ip)).toThrow();
+    for (const ip of [
+      "100.63.255.255",
+      "100.128.0.1",
+      "172.15.255.254",
+      "172.32.0.1",
+      "192.0.1.1",
+    ])
+      expect(normalizeIP(ip)).toBe(ip);
+  });
   it("accepts Cloudflare JSON bindings for source scope", async () => {
     const runtime = {
       ...env,

@@ -8,22 +8,46 @@ import {
   Snapshot,
 } from "./types";
 
+function normalizeIPv4(input: string): string {
+  if (!/^(?:0|[1-9][0-9]{0,2})(?:\.(?:0|[1-9][0-9]{0,2})){3}$/.test(input))
+    throw new HttpError(400, "Invalid IPv4 address");
+  const octets = input.split(".").map(Number);
+  if (octets.some((n) => n > 255))
+    throw new HttpError(400, "Invalid IPv4 address");
+  const [a, b, c] = octets;
+  const special =
+    a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    a >= 224 ||
+    (a === 100 && b >= 64 && b <= 127) ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 &&
+      (b === 168 ||
+        (b === 0 && (c === 0 || c === 2)) ||
+        (b === 88 && c === 99) ||
+        (b === 175 && c === 48) ||
+        (b === 31 && c === 196) ||
+        (b === 52 && c === 193))) ||
+    (a === 198 && (b === 18 || b === 19 || (b === 51 && c === 100))) ||
+    (a === 203 && b === 0 && c === 113);
+  if (special)
+    throw new HttpError(
+      400,
+      "Only public globally routable IP addresses are accepted",
+    );
+  return input;
+}
 export function normalizeIP(input: unknown): string {
-  if (
-    typeof input !== "string" ||
-    input.length > 45 ||
-    input.includes("%") ||
-    !ipaddr.isValid(input)
-  )
+  if (typeof input !== "string" || input.length > 45 || input.includes("%"))
     throw new HttpError(400, "Invalid IP address");
-  if (
-    !input.includes(":") &&
-    !/^(?:0|[1-9][0-9]{0,2})(?:\.(?:0|[1-9][0-9]{0,2})){3}$/.test(input)
-  )
-    throw new HttpError(400, "Ambiguous IPv4 spelling");
-  let ip = ipaddr.parse(input);
-  if (ip.kind() === "ipv6" && (ip as ipaddr.IPv6).isIPv4MappedAddress())
-    ip = (ip as ipaddr.IPv6).toIPv4Address();
+  // Avoid repeated generic CIDR scans for the dominant IPv4 ingestion path.
+  if (!input.includes(":")) return normalizeIPv4(input);
+  if (!ipaddr.isValid(input)) throw new HttpError(400, "Invalid IP address");
+  const ip = ipaddr.parse(input) as ipaddr.IPv6;
+  if (ip.isIPv4MappedAddress())
+    return normalizeIPv4(ip.toIPv4Address().toString());
   if (ip.range() !== "unicast")
     throw new HttpError(
       400,
