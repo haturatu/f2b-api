@@ -4,9 +4,11 @@ weight: 1
 description: "The nine jails that permanently ban on a single match, and the requests that do not trigger on their own."
 ---
 
-This page describes the nine jails that permanently ban on a single match and the requests that do not trigger a ban on their own.
+Nine scanner-related jails can **permanently ban an IP after one matching log entry**. Unlike the repeated-failure rules for SSH, these target request patterns often associated with scanning.
 
-These nine jails follow the [shared settings]({{< relref "/policies/_index.md" >}}#shared-scanner-settings) and ban permanently on a single detection. Access to specific paths or User-Agents is also treated as an operating blocking criterion of the collection sources. Access alone does not indicate a vulnerability in that product or a successful attack.
+That makes exclusions important. Some legitimate clients use the very same paths, HTTP methods, or User-Agents. Matching a filter does **not** prove that an exploit succeeded or that a particular person is malicious.
+
+All nine follow the [shared scanner settings]({{< relref "/policies/_index.md" >}}#shared-scanner-settings). The sections below explain both the signatures and what the filters deliberately exclude.
 
 ## Sensitive files and VCS
 
@@ -50,6 +52,8 @@ Services that legitimately expose these features can receive normal requests, so
 
 Common HTTP clients such as curl, wget, and `python-urllib`, or an empty User-Agent, do not match this condition on their own. A User-Agent is self-reported, so it does not establish who used a tool or any malicious intent.
 
+That also means a tool name in a User-Agent is not a reliable way to identify an individual.
+
 ## Backdoor names and response codes
 
 `nginx-scanner-backdoor` targets combinations of configured file names such as `shell`, `cmd`, `upload`, and `alfa` with configured PHP, ASP, JSP, and CGI extensions, and matches when the response is **200 or 403**.
@@ -71,3 +75,5 @@ A 401 for an ordinary POST to `/login` is not part of this jail. The listed erro
 - A 200 for `package.json`.
 
 This explains single-request conditions in scanner mitigation. If the same request matches another signature, it is detected by that jail. Ordinary HTTP requests can also match the [existing HTTP rate rule]({{< relref "/policies/services.md" >}}#http).
+
+These are the rules deployed at the collection sources, **not a recommended universal configuration**. Review the legitimate paths and methods on your own service before considering a similar policy.

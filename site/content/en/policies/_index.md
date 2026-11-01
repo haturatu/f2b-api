@@ -4,11 +4,13 @@ weight: 1
 description: "Repeated authentication failures and scanner signatures are evaluated separately."
 ---
 
-This page describes the blocking policies behind the observations and explains how they are evaluated.
+Fail2ban blocks IPs when log entries match configured filters, but not every jail decides the same way.
+
+SSH and mail failures are generally counted over a time window. Certain HTTP scanner signatures, on the other hand, trigger a permanent ban on just one match. Understanding the difference matters when interpreting the public API.
 
 ## Active configuration
 
-This page summarizes the active configuration as of November 1, 2026, for public reference. The collection source labels are `freebsd` and `oci`. Each uses 15 jails: 6 for traditional services and 9 for scanner mitigation.
+These are the source servers' settings as checked on November 1, 2026, **not recommended defaults for every server**. The collection source labels are `freebsd` and `oci`. Each uses 15 jails: 6 for traditional services and 9 for scanner mitigation.
 
 ## Two evaluation methods
 
@@ -35,7 +37,7 @@ The blocking scope covers HTTP/HTTPS over TCP and UDP on ports 80 and 443. `free
 - [The nine scanner rules]({{< relref "/policies/scanners.md" >}})
 - [Detection counts and ban durations by service]({{< relref "/policies/services.md" >}})
 
-## Environment-dependent judgment
+## Why you should not copy these rules without reviewing them
 
 On services that legitimately use administration screens, WebDAV, WordPress, PHP, or extended HTTP methods, the same request can be normal. The conditions listed here are the operating standards of the collection sources, not recommended settings that can be applied unchanged to any site.
 

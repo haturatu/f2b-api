@@ -4,9 +4,9 @@ weight: 2
 description: "Detection windows, match counts, and ban durations for the six existing jails."
 ---
 
-This page describes the detection windows, match counts, and ban durations of the six jails that operate separately from scanner mitigation.
+Besides the nine scanner jails, there are six jails for SSH, mail, HTTP, repeat offenders, and fake Googlebot traffic. They generally count matching log entries within a defined period instead of banning every IP permanently after one request.
 
-The table shows the active configuration as of November 1, 2026.
+The table records the settings verified on November 1, 2026, not values intended for arbitrary servers.
 
 | Jail | Detection window | Matches | freebsd ban duration | oci ban duration |
 | --- | --- | --- | --- | --- |
@@ -23,7 +23,7 @@ The table shows the active configuration as of November 1, 2026.
 
 ## HTTP
 
-The `nginx` filter differs by collection source.
+The tricky one is `nginx`. **The jail has the same name at both sources, but their filters are different.**
 
 - `freebsd`: matches 60 times in 60 seconds for GET, POST, and HEAD responses with 200, 4xx, or 5xx.
 - `oci`: matches 60 times in 60 seconds for 429, 444, 499, 503, and 504 responses to uppercase methods.
@@ -41,4 +41,4 @@ The same jail name therefore does not mean the same detection. Read API results 
 - `freebsd`: resolves the name and verifies that forward resolution matches the original IP.
 - `oci`: verifies that the resolved name ends with `googlebot.com` or `google.com`.
 
-The two checks differ in strength. The ban duration is the existing very long finite value and is not the permanent `bantime = -1` ban used in scanner mitigation.
+The `oci` check does not verify that a forward DNS lookup resolves back to the original IP, so the two checks differ in strength. The ban duration is the existing very long finite value and is not the permanent `bantime = -1` ban used in scanner mitigation.
