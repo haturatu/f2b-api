@@ -88,11 +88,24 @@ npm run dev
 
 ## デプロイ
 
-Workers、D1、Access、カスタムドメインは既存の `cftf/stacks/f2b` で管理します。Hugo の本文・設定・ビルド処理を変更した場合も、`npm run build` でサイトを同梱し、`dist/api.js` と `dist/ingest.js` を非公開設定リビジョンに格納し、専用の `f2b` ターゲットで plan と apply を実行します。既存 Worker の state と分離しています。
+インフラとアプリケーションで管理を分けます。
 
-`migrations/0001_initial.sql` を対象 D1 に適用してから収集を開始します。DB ID、アカウント ID、認証用 Secret、D1 の実データやバックアップはこのリポジトリに保存しません。CI は認証情報を使わずテストとビルドを実行します。デプロイと状態の管理は `cftf` の既存の非公開実行基盤が担当します。
+- `cftf/stacks/f2b`（Terraform）は、D1、Access、Service Token、カスタムドメイン、WAF など、デプロイ先の基盤を作成します。Worker のスクリプト、バインディング、バージョンは管理しません。
+- `f2b-api`（GitHub Actions と Wrangler）は、`npm run build` で `dist/api.js` と `dist/ingest.js` を生成し、master への push で Worker を配信します。
 
-Service Token の標準有効期間は 1 年です。期限前にインフラ管理側で更新し、各サーバーのモード `0600` の認証設定を更新します。
+本番デプロイは GitHub の `production` 環境で次の Secret を使用します。
+
+| Secret | 用途 |
+| --- | --- |
+| `CLOUDFLARE_API_TOKEN` | Worker の編集と D1 マイグレーション |
+| `CLOUDFLARE_ACCOUNT_ID` | 対象アカウント |
+| `F2B_DEPLOY_CONFIG` | Worker 名、D1 ID、Access の AUD と収集元の対応、Rate Limit 設定 |
+
+`F2B_DEPLOY_CONFIG` は、`cftf` の `deployment_config` 出力から作成します。`scripts/prepare-deploy.mjs` は実行時に `.deploy/` へ Wrangler 設定を生成し、`SOURCE_SCOPES` は Secret として収集 Worker にだけ配信します。
+
+リポジトリ変数 `DEPLOY_ENABLED` が `true` のとき、master への push と手動実行でデプロイします。テストが失敗した場合や Pull Request では実行しません。D1 マイグレーションは Worker の配信前に適用します。
+
+DB ID、アカウント ID、認証用 Secret、D1 の実データやバックアップはこのリポジトリに保存しません。Service Token の標準有効期間は 1 年です。期限前にインフラ管理側で更新し、各サーバーのモード `0600` の認証設定を更新します。
 
 ## 無料枠とキャッシュ
 

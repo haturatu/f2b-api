@@ -30,3 +30,62 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+  deploy:
+    needs: test
+    if: >-
+      github.ref == 'refs/heads/master' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: production
+    concurrency:
+      group: f2b-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: site/go.mod
+          cache-dependency-path: site/go.sum
+      - uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: "0.164.0"
+          extended: true
+      - run: npm ci
+      - run: npm run build
+      - name: Prepare the Wrangler configuration
+        run: node scripts/prepare-deploy.mjs
+        env:
+          F2B_DEPLOY_CONFIG: ${{ secrets.F2B_DEPLOY_CONFIG }}
+      - name: Apply D1 migrations
+        run: >-
+          printf 'y\n' | npx wrangler d1 migrations apply
+          "$(cat .deploy/database-name)" --remote --config .deploy/api.json
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_SEND_METRICS: "false"
+      - name: Deploy the public API Worker
+        run: npx wrangler deploy --config .deploy/api.json
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_SEND_METRICS: "false"
+      - name: Deploy the ingestion Worker
+        run: >-
+          npx wrangler deploy --config .deploy/ingest.json
+          --secrets-file .deploy/ingest-secrets.json
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_SEND_METRICS: "false"
+      - name: Remove the temporary deployment configuration
+        if: always()
+        run: rm -rf .deploy
