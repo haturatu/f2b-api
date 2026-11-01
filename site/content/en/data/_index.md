@@ -4,6 +4,8 @@ weight: 3
 description: "Observation times, ban state, stale updates, and the meaning and limits of country and ASN data."
 ---
 
+This page explains the unit of observation returned by the API, the meaning of times and state, and the limits of the enrichment data.
+
 ## Unit of observation
 
 One observation is the combination of `source`, `jail`, and `ip`. If the same IP is detected by two jails or two collection sources, it is kept as multiple observations.
@@ -30,7 +32,7 @@ IPs that were banned and released between two collections cannot be recorded. Th
 
 ## Country, ASN, and organization
 
-These are enrichment values from GeoIP, RDAP, and similar sources. Unknown values are `null`. Country codes and ASNs describe networks; they do not identify the nationality, residence, affiliation, or identity of the person who made the request.
+These are enrichment values from GeoIP (IP geolocation) and RDAP (registration data). Unknown values are `null`. Country codes and ASN (Autonomous System Number) values describe networks; they do not identify the nationality, residence, affiliation, or identity of the person who made the request.
 
 ## What is public
 
@@ -40,4 +42,4 @@ Do not treat an IP record alone as proof of malicious intent or as grounds for p
 
 ## Reporting false positives or specification issues
 
-You can report interpretation questions or inconsistencies in the specification through the [GitHub repository](https://github.com/haturatu/f2b-api). Do not publish credentials, raw logs, or personal information. When reviewing a correction, we separate the jail, the observation time, and the conditions of the issue.
+You can report interpretation questions or inconsistencies in the specification through the [f2b-api GitHub repository](https://github.com/haturatu/f2b-api). Do not publish credentials, raw logs, or personal information. When reviewing a correction, we separate the jail, the observation time, and the conditions of the issue.

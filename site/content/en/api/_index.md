@@ -43,7 +43,7 @@ You can filter by `source`, `jail`, `country`, `asn`, and `active`. The values a
 | `false` | Observations dropped from the list in the latest collection |
 | `all` | Full history, including released and stale observations |
 
-The page size `limit` defaults to 100 and can be at most 500. When `next_cursor` is a string, pass it as `cursor` in the next request while keeping the same filters. If it is `null`, you are on the last page. Do not interpret or modify the cursor; pass it as a URL-encoded query value.
+The page size `limit` defaults to 100 and can be at most 500. When `next_cursor` is a string, keep the same filters and pass it as `cursor` in the next request. If it is `null`, you are on the last page. Do not interpret or modify the cursor; pass it as a URL-encoded query value.
 
 ## Text feed
 
@@ -51,7 +51,7 @@ The page size `limit` defaults to 100 and can be at most 500. When `next_cursor`
 curl -i 'https://f2b.0xhw.com/v1/feed.txt?limit=1000'
 ```
 
-The feed returns one IP per line. The limit defaults to 1,000 and can be at most 5,000. When `X-Truncated: true` is returned, pass `X-Next-Cursor` as the next `cursor` to continue. The default first page does not always contain every record.
+The feed returns one IP per line. The limit defaults to 1000 and can be at most 5000. When `X-Truncated: true` is returned, pass `X-Next-Cursor` as the next `cursor` to continue. The default first page does not always contain every record.
 
 ## Caching and usage limits
 

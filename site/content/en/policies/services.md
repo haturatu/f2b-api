@@ -4,7 +4,9 @@ weight: 2
 description: "Detection windows, match counts, and ban durations for the six existing jails."
 ---
 
-The existing jails operate separately from scanner mitigation. The following is the active configuration as of November 1, 2026.
+This page describes the detection windows, match counts, and ban durations of the six jails that operate separately from scanner mitigation.
+
+The table shows the active configuration as of November 1, 2026.
 
 | Jail | Detection window | Matches | freebsd ban duration | oci ban duration |
 | --- | --- | --- | --- | --- |

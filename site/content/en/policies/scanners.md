@@ -4,7 +4,9 @@ weight: 1
 description: "The nine jails that permanently ban on a single match, and the requests that do not trigger on their own."
 ---
 
-The nine jails below follow the [shared settings]({{< relref "/policies/_index.md" >}}#shared-scanner-settings) and ban permanently on a single detection. Access to specific paths or User-Agents is also treated as an operating blocking criterion of the collection sources. Access alone does not indicate a vulnerability in that product or a successful attack.
+This page describes the nine jails that permanently ban on a single match and the requests that do not trigger a ban on their own.
+
+These nine jails follow the [shared settings]({{< relref "/policies/_index.md" >}}#shared-scanner-settings) and ban permanently on a single detection. Access to specific paths or User-Agents is also treated as an operating blocking criterion of the collection sources. Access alone does not indicate a vulnerability in that product or a successful attack.
 
 ## Sensitive files and VCS
 

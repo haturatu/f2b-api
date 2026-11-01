@@ -4,19 +4,21 @@ weight: 1
 description: "一度の一致で永久 BAN する 9 個の Jail と、単独では検知しないリクエスト。"
 ---
 
-以下の 9 個は、[共通設定]({{< relref "/policies/_index.md" >}}#スキャナー対策の共通設定)に従い、一度の検知で永久 BAN します。特定のパスや User-Agent へのアクセスも、収集元の運用上の遮断基準として扱います。アクセスがあっただけで、その製品の脆弱性や攻撃の成功を示すものではありません。
+このページでは、一度の一致で永久 BAN する 9 個の Jail と、単独では BAN の条件にしないリクエストを説明します。
+
+次の 9 個の Jail は、[共通設定]({{< relref "/policies/_index.md" >}}#スキャナー対策の共通設定)に従い、一度の検知で永久 BAN します。特定のパスや User-Agent へのアクセスも、収集元の運用上の遮断基準として扱います。アクセスがあっただけで、その製品の脆弱性や攻撃の成功を示すものではありません。
 
 ## 機密ファイルと VCS
 
 `nginx-scanner-secrets` は、`.env`、`.git/config`、`.svn/entries`、クラウド認証ファイル、秘密鍵、履歴ファイル、設定のバックアップなどへの探索を対象にします。
 
-このフィルターでは `/.well-known/acme-challenge/` を除外します。通常の公開ファイルの存在確認とは区別します。
+このフィルターは `/.well-known/acme-challenge/` を除外します。通常の公開ファイルの存在確認とは区別します。
 
 ## HTTP メソッド
 
 `nginx-scanner-method` は、TRACE、CONNECT、指定した WebDAV・拡張メソッド、PRI、指定した壊れた・小文字のメソッドを対象にします。例として PROPFIND、MKCOL、LOCK、`GETT`、`get` などが含まれます。
 
-通常の OPTIONS は CORS プリフライトに使われるため、このメソッド判定には含めません。このフィルターでは `/dav`、`/webdav`、`/remote.php` 配下を除外します。
+通常の OPTIONS は CORS プリフライトに使われるため、このメソッド判定には含めません。このフィルターは `/dav`、`/webdav`、`/remote.php` 配下を除外します。
 
 ## パストラバーサル
 
@@ -38,7 +40,7 @@ description: "一度の一致で永久 BAN する 9 個の Jail と、単独で�
 
 `nginx-scanner-cve` は、PHPUnit、Ignition、Actuator、Solr、VPN 装置、メール製品、管理コンソール、CGI、WordPress、診断用ページなどの指定パスへのアクセスを対象にします。
 
-例として、PHPUnit の `eval-stdin.php`、`/_ignition/execute-solution`、`/actuator/env`、`/manager/html`、`/server-status`、`/xmlrpc.php` が含まれます。このフィルターでは Actuator の `/health`・`/info` を除外します。
+例として、PHPUnit の `eval-stdin.php`、`/_ignition/execute-solution`、`/actuator/env`、`/manager/html`、`/server-status`、`/xmlrpc.php` が含まれます。このフィルターは Actuator の `/health` と `/info` を除外します。
 
 これらの機能を正当に公開しているサービスでは正常なアクセスもあり得るため、パスだけを一般的な悪意の根拠にはできません。
 
@@ -64,7 +66,7 @@ PHP サイト以外を前提にしています。任意の `.php` への 404 を
 
 - 通常の OPTIONS、HEAD、PATCH。
 - 通常の POST `/login` に対する 401。
-- curl、wget、`python-urllib`、一般的なブラウザーの UA、空の UA。
+- curl、wget、`python-urllib`、一般的なブラウザーの User-Agent、空の User-Agent。
 - 通常の `.php` に対する 404。
 - `package.json` に対する 200。
 

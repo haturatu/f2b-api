@@ -4,7 +4,7 @@ weight: 2
 description: "公開読み取り API の検索、ページング、統計、テキストフィード。"
 ---
 
-ベース URL は `https://f2b.0xhw.com` です。公開読み取り API は認証不要で、IPv4・IPv6 を扱います。[API リファレンス](/docs)から GET を実行できます。[OpenAPI JSON](/openapi.json)も利用できます。
+ベース URL は `https://f2b.0xhw.com` です。公開読み取り API は認証不要で、IPv4 と IPv6 を扱います。[API リファレンス](/docs)から GET を実行できます。[OpenAPI JSON](/openapi.json) も利用できます。
 
 ## エンドポイント
 
@@ -23,7 +23,7 @@ description: "公開読み取り API の検索、ページング、統計、テ�
 curl 'https://f2b.0xhw.com/v1/lookup?ip=1.1.1.1'
 ```
 
-この IP は呼び出しの例です。観測がない場合も正常に応答し、`observations` が空の配列になります。プライベート・予約アドレスや不正な値には 400 を返します。
+この IP は呼び出しの例です。観測がない場合も正常に応答し、`observations` は空の配列になります。プライベート・予約アドレスや不正な値には 400 を返します。
 
 `first_seen` と `last_seen` は Unix 秒です。`active` と `stale` は 0 または 1 で返します。意味は[データの読み方]({{< relref "/data/_index.md" >}})を参照してください。
 
@@ -43,7 +43,7 @@ curl 'https://f2b.0xhw.com/v1/ips?asn=3462&limit=100'
 | `false` | 最新の収集で一覧から外れた観測 |
 | `all` | 解除済み・更新停止を含む全履歴 |
 
-ページサイズの `limit` は既定 100、最大 500 です。返された `next_cursor` が文字列なら、同じ絞り込み条件を保ち、`cursor` として次のリクエストへ渡します。`null` なら最終ページです。カーソルは解釈・加工せず、クエリー値として URL エンコードしてください。
+ページサイズの `limit` は既定値 100、最大値 500 です。返された `next_cursor` が文字列なら、同じ絞り込み条件を保ったまま、`cursor` として次のリクエストへ渡します。`null` なら最終ページです。カーソルは解釈したり加工したりせず、クエリー値として URL エンコードしてください。
 
 ## テキストフィード
 
@@ -51,7 +51,7 @@ curl 'https://f2b.0xhw.com/v1/ips?asn=3462&limit=100'
 curl -i 'https://f2b.0xhw.com/v1/feed.txt?limit=1000'
 ```
 
-IP を 1 行ずつ返します。上限は既定 1,000、最大 5,000 件です。`X-Truncated: true` の場合は `X-Next-Cursor` を次の `cursor` に指定して取得を続けます。既定の先頭ページだけで全件取得できるとは限りません。
+IP を 1 行ずつ返します。上限は既定値 1000、最大値 5000 です。`X-Truncated: true` の場合は `X-Next-Cursor` を次の `cursor` に指定して取得を続けます。既定の先頭ページだけで全件を取得できるとは限りません。
 
 ## キャッシュと利用上限
 

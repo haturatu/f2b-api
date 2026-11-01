@@ -4,7 +4,11 @@ weight: 1
 description: "Repeated authentication failures and scanner signatures are evaluated separately."
 ---
 
-This page describes the active configuration as of November 1, 2026, for public reference. The collection source labels are `freebsd` and `oci`. Each uses 15 jails: 6 for traditional services and 9 for scanner mitigation.
+This page describes the blocking policies behind the observations and explains how they are evaluated.
+
+## Active configuration
+
+This page summarizes the active configuration as of November 1, 2026, for public reference. The collection source labels are `freebsd` and `oci`. Each uses 15 jails: 6 for traditional services and 9 for scanner mitigation.
 
 ## Two evaluation methods
 
