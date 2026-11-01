@@ -50,7 +50,7 @@ function decodeCursor(value: string, size: number): string[] {
     throw new HttpError(400, "Invalid cursor");
   }
 }
-async function route(url: URL, env: Env): Promise<Response> {
+async function route(request: Request, url: URL, env: Env): Promise<Response> {
   if (url.pathname === "/docs" || url.pathname === "/docs/") return docsPage();
   if (url.pathname === "/openapi.json") return openapiDocument();
   const fresh = cutoff(env);
@@ -182,7 +182,7 @@ async function route(url: URL, env: Env): Promise<Response> {
       sources: data[4].results,
     });
   }
-  const page = siteResponse(url);
+  const page = siteResponse(request);
   if (page) return page;
   throw new HttpError(404, "Not found");
 }
@@ -219,7 +219,7 @@ export default {
       const cache = typeof caches !== "undefined" ? caches.default : undefined;
       let result = cache ? await cache.match(cacheKey) : undefined;
       if (!result) {
-        result = await route(url, env);
+        result = await route(request, url, env);
         if (result.ok) {
           if (
             !result.headers.has("Cache-Control") ||
