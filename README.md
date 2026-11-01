@@ -84,6 +84,8 @@ Service Token の標準有効期間は 1 年です。期限前にインフラ管
 
 Workers と D1 の無料枠での小規模運用を想定しています。課金プランの契約はこのアプリケーションから変更しません。無料プランの上限に達した場合、API が一時的に利用できなくなる場合があります。
 
+公開 API は Rate Limiting binding でクライアント IP ごとに 1 分 120 回を目安に制限し、超過時は 429 と `Retry-After` を返します。この制限は Cloudflare 拠点ごとの概算です。API 用ホストだけ Browser Integrity Check をスキップし、一般的な HTTP クライアントを受け付けます。収集元の Access 認証は継続します。
+
 公開レスポンスはエッジキャッシュを使用します。統計は 15 分、フィードは 5 分、その他は 1 分です。IP へのインデックスとページサイズの上限で読み取りを制限し、heartbeat と差分更新で書き込みを減らします。アクセスが複数拠点に分散した場合やキャッシュが無効な場合もあるため、D1 の `rows_read`、`rows_written`、容量を確認してください。
 
 - [Workers の制限](https://developers.cloudflare.com/workers/platform/limits/)

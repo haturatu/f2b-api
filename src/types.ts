@@ -1,5 +1,8 @@
 export interface Env {
   DB: D1Database;
+  READ_LIMITER?: {
+    limit(options: { key: string }): Promise<{ success: boolean }>;
+  };
   SOURCE_TOKENS?: string | Record<string, { source: string; jails: string[] }>;
   STALE_SECONDS?: string;
 }

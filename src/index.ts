@@ -191,6 +191,20 @@ export default {
         return new Response(null, { status: 204, headers: cors });
       if (!["GET", "HEAD"].includes(request.method))
         throw new HttpError(405, "Method not allowed");
+      if (
+        env.READ_LIMITER &&
+        !(
+          await env.READ_LIMITER.limit({
+            key: request.headers.get("CF-Connecting-IP") ?? "unknown",
+          })
+        ).success
+      ) {
+        const limited = response({ error: "Rate limit exceeded" }, 429);
+        limited.headers.set("Retry-After", "60");
+        for (const [key, value] of Object.entries(cors))
+          limited.headers.set(key, value);
+        return limited;
+      }
       const url = new URL(request.url);
       url.searchParams.sort();
       const cacheKey = new Request(url.toString());

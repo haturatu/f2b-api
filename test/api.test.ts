@@ -259,6 +259,19 @@ describe("atomic diff ingestion", () => {
   });
 });
 describe("public API", () => {
+  it("limits public clients before database reads", async () => {
+    const limited = {
+      ...env,
+      READ_LIMITER: { limit: async () => ({ success: false }) },
+    };
+    const result = await api.fetch(
+      new Request("https://api.example.com/v1/ips"),
+      limited,
+      context,
+    );
+    expect(result.status).toBe(429);
+    expect(result.headers.get("Retry-After")).toBe("60");
+  });
   it("supports lookup, search, pagination, statistics, sources and text feed", async () => {
     await ingestSnapshot(snapshot(["1.1.1.1", "8.8.8.8", "9.9.9.9"]), env);
     const first = (await (await get("/v1/ips?limit=2")).json()) as any;

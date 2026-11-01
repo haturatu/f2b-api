@@ -35,6 +35,9 @@
           },
           "503": {
             "description": "Temporary service or free-quota limit failure"
+          },
+          "429": {
+            "description": "Per-client edge rate limit; retry after 60 seconds"
           }
         }
       }
@@ -68,6 +71,9 @@
           },
           "503": {
             "description": "Temporary service or free-quota limit failure"
+          },
+          "429": {
+            "description": "Per-client edge rate limit; retry after 60 seconds"
           }
         }
       }
@@ -149,6 +155,9 @@
           },
           "503": {
             "description": "Temporary service or free-quota limit failure"
+          },
+          "429": {
+            "description": "Per-client edge rate limit; retry after 60 seconds"
           }
         }
       }
@@ -173,6 +182,9 @@
           },
           "503": {
             "description": "Temporary service or free-quota limit failure"
+          },
+          "429": {
+            "description": "Per-client edge rate limit; retry after 60 seconds"
           }
         }
       }
@@ -197,6 +209,9 @@
           },
           "503": {
             "description": "Temporary service or free-quota limit failure"
+          },
+          "429": {
+            "description": "Per-client edge rate limit; retry after 60 seconds"
           }
         }
       }
@@ -238,6 +253,9 @@
           },
           "503": {
             "description": "Temporary service or free-quota limit failure"
+          },
+          "429": {
+            "description": "Per-client edge rate limit; retry after 60 seconds"
           }
         }
       }
