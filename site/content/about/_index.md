@@ -32,6 +32,4 @@ Hugo の本文・テーマ設定は `f2b-api/site/`、サイトのビルドと W
 
 f2b-api のソースコードと独自のドキュメントは [BSD 2-Clause License](https://github.com/haturatu/f2b-api/blob/master/LICENSE)です。Copyright (c) 2026, haturatu。
 
-テーマは [s3dock-docs](https://github.com/haturatu/s3dock-docs)と同じ **Hextra v0.13.0** を使用しています。Hextra は [MIT License](/licenses/hextra.txt)で配布されています。
-
 サイト内検索は FlexSearch を使用し、[Apache License 2.0](/licenses/flexsearch.txt)で配布されています。ライセンスと著作権表示を配信アセットに保持しています。
