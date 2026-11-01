@@ -4,9 +4,11 @@ weight: 1
 description: "单次命中即永久封禁的九个 jail，以及本身不会触发封禁的请求。"
 ---
 
-本页说明单次命中即永久封禁的九个 jail，以及本身不会触发封禁的请求。
+这九个扫描器相关的 jail 可以在**一条日志匹配后就永久封禁 IP**。与 SSH 的多次失败计数不同，它们主要检测常见的扫描请求特征。
 
-这九个 jail 遵循[共用设置]({{< relref "/policies/_index.md" >}}#shared-scanner-settings)，在单次检测后即永久封禁。对特定路径或 User-Agent 的访问同样被视为采集源的运行阻断判据。仅有访问行为并不表示该产品存在漏洞，也不表示攻击已经成功。
+不过，正常客户端也可能访问相同的路径、使用相同的 HTTP 方法或 User-Agent，所以排除条件同样重要。**匹配规则不等于攻击成功，更不能据此确定访问者的身份。**
+
+九个 jail 均采用[共用设置]({{< relref "/policies/_index.md" >}}#shared-scanner-settings)。下面分别说明检测范围和特意排除的情况。
 
 ## 敏感文件与版本控制
 
@@ -50,6 +52,8 @@ description: "单次命中即永久封禁的九个 jail，以及本身不会触�
 
 curl、wget、`python-urllib` 等常见 HTTP 客户端，或空 User-Agent，本身不会命中该条件。User-Agent 由客户端自行声明，因此不能据此确定工具的使用者或任何恶意意图。
 
+因此，即使 User-Agent 中有扫描器名称，也不能据此准确识别请求者。
+
 ## 后门文件名与响应码
 
 `nginx-scanner-backdoor` 针对 `shell`、`cmd`、`upload`、`alfa` 等配置的文件名与配置的 PHP、ASP、JSP、CGI 扩展名的组合，并在响应为 **200 或 403** 时命中。
@@ -71,3 +75,5 @@ curl、wget、`python-urllib` 等常见 HTTP 客户端，或空 User-Agent，本
 - `package.json` 返回 200。
 
 以上说明的是扫描器缓解中的单次请求条件。若同一请求还命中其他特征，则会由相应的 jail 检测。普通 HTTP 请求也可能命中[现有的 HTTP 频率规则]({{< relref "/policies/services.md" >}}#http)。
+
+这些只是采集源当前采用的规则，**不是适用于所有站点的通用推荐配置**。在自己的服务上使用类似规则前，应先检查正常业务需要访问的路径和 HTTP 方法。
