@@ -8,6 +8,7 @@ import {
 } from "./types";
 import { normalizeIP } from "./validation";
 import { docsPage, openapiDocument } from "./docs";
+import { siteResponse } from "./site";
 const JOIN =
   "FROM ip_observations o JOIN jail_state s ON s.source=o.source AND s.jail=o.jail";
 const FIELDS =
@@ -53,7 +54,7 @@ async function route(url: URL, env: Env): Promise<Response> {
   if (url.pathname === "/docs" || url.pathname === "/docs/") return docsPage();
   if (url.pathname === "/openapi.json") return openapiDocument();
   const fresh = cutoff(env);
-  if (url.pathname === "/" || url.pathname === "/health")
+  if (url.pathname === "/health")
     return response({
       service: "f2b-api",
       version: 1,
@@ -181,6 +182,8 @@ async function route(url: URL, env: Env): Promise<Response> {
       sources: data[4].results,
     });
   }
+  const page = siteResponse(url);
+  if (page) return page;
   throw new HttpError(404, "Not found");
 }
 export default {

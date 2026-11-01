@@ -21,6 +21,14 @@ flowchart LR
 
 公開 API は `https://f2b.0xhw.com`、収集 API は `https://f2b-ingest.0xhw.com` です。Workers は 2 個、D1 は 1 個を使用します。Containers、KV、R2、Durable Objects はアプリケーションの実行には不要です。インフラの既存 Terraform state・設定保存は、別の管理基盤が担当します。
 
+## 静的ドキュメントサイト
+
+[ルートページ](https://f2b.0xhw.com/)には、Hugo と Hextra v0.13.0 で生成した静的サイトを配信します。テーマは [s3dock-docs](https://github.com/haturatu/s3dock-docs)と同じバージョンです。公開用の遮断ポリシー、スキャナーの検知条件、サービス別の期間・回数、API の使い方、観測データの制約を説明します。
+
+Hugo の設定・本文・テーマ依存は `site/`、アセットの生成は `scripts/build-site.mjs` で管理します。生成物は Git に含めず、ビルド時に既存 Worker へ同梱するため、サイト用のサーバーやストレージを追加しません。サイトの画面・CSS・検索機能は同じホストから配信します。
+
+`/health` は JSON のサービス情報、`/docs` は Swagger UI、`/v1/*` は既存 API を提供します。公開用の説明には管理用ネットワークや認証情報を含めません。
+
 ## 公開 API
 
 [API ドキュメント](https://f2b.0xhw.com/docs)は Swagger UI で表示し、公開 GET API をブラウザーから実行できます。[OpenAPI JSON](https://f2b.0xhw.com/openapi.json)は同じ Worker から配信します。サーバー URL は相対パスのため、ドキュメントを開いたホストにリクエストします。
@@ -60,6 +68,8 @@ D1 の batch 内で状態と差分をまとめて反映します。書き込み�
 
 ## 開発と検証
 
+Hugo extended 0.164.0 と Go（`site/go.mod` のバージョン）を用意します。テーマは Hugo Modules でバージョンを固定し、チェックサムを管理します。`typecheck`・`test`・`build` の各コマンドはサイトを生成してから実行します。
+
 ```sh
 npm ci
 npm run typecheck
@@ -78,7 +88,7 @@ npm run dev
 
 ## デプロイ
 
-Workers、D1、Access、カスタムドメインは既存の `cftf/stacks/f2b` で管理します。`npm run build` の `dist/api.js` と `dist/ingest.js` を非公開設定リビジョンに格納し、専用の `f2b` ターゲットで plan と apply を実行します。既存 Worker の state と分離しています。
+Workers、D1、Access、カスタムドメインは既存の `cftf/stacks/f2b` で管理します。Hugo の本文・設定・ビルド処理を変更した場合も、`npm run build` でサイトを同梱し、`dist/api.js` と `dist/ingest.js` を非公開設定リビジョンに格納し、専用の `f2b` ターゲットで plan と apply を実行します。既存 Worker の state と分離しています。
 
 `migrations/0001_initial.sql` を対象 D1 に適用してから収集を開始します。DB ID、アカウント ID、認証用 Secret、D1 の実データやバックアップはこのリポジトリに保存しません。CI は認証情報を使わずテストとビルドを実行します。デプロイと状態の管理は `cftf` の既存の非公開実行基盤が担当します。
 
@@ -100,3 +110,5 @@ Workers と D1 の無料枠での小規模運用を想定しています。課�
 ## ライセンス
 
 [BSD 2-Clause License](LICENSE)。Copyright (c) 2026, haturatu。
+
+テーマと検索ライブラリーのライセンスは `site/static/licenses/` に保持し、サイトからも参照できます。

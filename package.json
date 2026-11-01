@@ -6,12 +6,15 @@
   "description": "Public Fail2ban observations API and Access-protected ingestion on Cloudflare Workers and D1",
   "license": "BSD-2-Clause",
   "scripts": {
-    "build": "node scripts/build.mjs",
+    "build": "npm run build:site && node scripts/build.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "dev": "wrangler dev --config wrangler.jsonc",
+    "dev": "npm run build:site && wrangler dev --config wrangler.jsonc",
     "format": "prettier --write src test scripts openapi*.json",
-    "format:check": "prettier --check src test scripts openapi*.json"
+    "format:check": "prettier --check src test scripts openapi*.json",
+    "build:site": "node scripts/build-site.mjs",
+    "pretypecheck": "npm run build:site",
+    "pretest": "npm run build:site"
   },
   "dependencies": {
     "ipaddr.js": "^2.5.0"
