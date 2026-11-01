@@ -4,9 +4,13 @@ weight: 4
 description: "How collection, storage, and publication work, plus source code and licenses."
 ---
 
-This page describes how data is collected, stored, and published, and lists the source code and licenses.
+I was already generating HTML reports from Fail2ban, but they were awkward for questions such as “Which jail recorded this IP?” or “Is it still banned?”
+
+The API reuses that collection process, with a separate ingestion path and a public, read-only interface. The original HTML reports are still generated.
 
 ## Architecture
+
+The flow from the firewall to the published result looks like this:
 
 ```text
 Fail2ban (FreeBSD / PF, Linux / nftables)
@@ -17,7 +21,11 @@ Fail2ban (FreeBSD / PF, Linux / nftables)
   → f2b-api Worker: public GET API and this static site
 ```
 
-The collection Worker and the public Worker are separate and share the same D1 database. The public API cannot submit data or operate any server's firewall.
+The `f2b-ingest` Worker handles incoming snapshots, while `f2b-api` serves queries and the Hugo site. They share D1, but the public API cannot submit data or operate PF or nftables on any server. Each server's own Fail2ban decides what to block.
+
+This site focuses on **why an IP was recorded**, alongside the API and the existing HTML reports.
+
+## Languages
 
 This site is available in Japanese, English, Russian, Simplified Chinese, and Traditional Chinese. Requests to the root are directed to `/ja/`, `/en/`, `/ru/`, `/zh-cn/`, or `/zh-tw/` based on the saved preference, the browser language, and the connection country. Choosing a language from the navigation bar stores the preference in a cookie.
 

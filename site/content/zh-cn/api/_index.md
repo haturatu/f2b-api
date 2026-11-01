@@ -4,9 +4,11 @@ weight: 2
 description: "公开只读 API 的查询、过滤、排序、统计与文本订阅源。"
 ---
 
-基础 URL 为 `https://api.f2b.0xhw.com`。公开只读 API 无需认证，支持 IPv4 与 IPv6。你可以在 [API 参考](https://api.f2b.0xhw.com/docs) 中直接执行 GET 请求。也可以获取 [OpenAPI JSON](https://api.f2b.0xhw.com/openapi.json)。
+基础 URL 是 `https://api.f2b.0xhw.com`。这里只提供**公开只读的 GET API**，无需登录就能查询 IPv4 和 IPv6 的观测记录，但不能修改任何服务器的封禁列表。
 
-## 端点
+想在浏览器里尝试请求，可以使用[交互式 API 参考](https://api.f2b.0xhw.com/docs)；机器可读的 [OpenAPI 规范](https://api.f2b.0xhw.com/openapi.json)也可以获取。
+
+## 可以查询什么
 
 | 路径 | 用途 |
 | --- | --- |
@@ -17,7 +19,7 @@ description: "公开只读 API 的查询、过滤、排序、统计与文本订�
 | `/v1/sources` | 采集源与 jail 更新状态 |
 | `/v1/feed.txt` | 有效观测记录的去重 IP 列表 |
 
-## 查询 IP
+## 查询单个 IP
 
 ```sh
 curl 'https://api.f2b.0xhw.com/v1/lookup?ip=1.1.1.1'
@@ -28,6 +30,8 @@ curl 'https://api.f2b.0xhw.com/v1/lookup?ip=1.1.1.1'
 `first_seen` 与 `last_seen` 为 Unix 秒。`active` 与 `stale` 以 0 或 1 返回。其含义请参阅[解读数据]({{< relref "/data/_index.md" >}})。
 
 ## 过滤与分页
+
+没必要每次都下载完整列表。可以按照国家、jail、组织名称或观测时间缩小查询范围：
 
 ```sh
 curl 'https://api.f2b.0xhw.com/v1/ips?country=JP&jail=sshd&sort=last_seen&order=desc&limit=100'
@@ -62,9 +66,11 @@ curl -i 'https://api.f2b.0xhw.com/v1/feed.txt?country=JP&limit=1000'
 
 订阅源每行返回一个 IP，并接受相同的过滤参数。默认按 IP 地址排序；游标与过滤条件绑定。`limit` 默认为 1000，最大为 5000。若响应返回 `X-Truncated: true`，请将 `X-Next-Cursor` 作为下一次请求的 `cursor` 以继续获取。
 
+**不要把这个列表直接当成永久封禁名单使用。** 它记录的是 Fail2ban 的观测结果，而不是经过身份确认的攻击者。请先检查[检测规则]({{< relref "/policies/_index.md" >}})和观测时间。
+
 ## 统计
 
-`/v1/stats` 接受相同的过滤参数。未指定 `group_by` 时，返回总计以及按国家、ASN、jail 和采集源的计数。指定 `group_by` 时，返回单个已排序的聚合列表。
+如果只想看汇总而不是单条记录，可以用 `/v1/stats`。它接受相同的过滤参数。未指定 `group_by` 时，返回总计以及按国家、ASN、jail 和采集源的计数。指定 `group_by` 时，返回单个已排序的聚合列表。
 
 ```sh
 curl 'https://api.f2b.0xhw.com/v1/stats?country=JP&group_by=asn&sort=observations&order=desc&limit=20'
@@ -74,6 +80,6 @@ curl 'https://api.f2b.0xhw.com/v1/stats?country=JP&group_by=asn&sort=observation
 
 ## 缓存与使用限制
 
-API 将每个客户端 IP 限制为每分钟约 120 次请求，超出限制时返回 429 并附带 `Retry-After`。该限制是按站点估算的近似值。
+API 将每个客户端 IP 限制为每分钟约 120 次请求，超出限制时返回 429 并附带 `Retry-After`。这是边缘节点上的近似限制，并非全球共用的精确计数器。
 
 统计数据缓存 15 分钟，订阅源缓存 5 分钟，其他 API 缓存 1 分钟。因此在采集完成后的一小段时间内，结果可能不一致。免费套餐限制或临时故障也可能导致 API 不可用；出错时请间隔一段时间后重试。

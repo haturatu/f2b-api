@@ -4,9 +4,11 @@ weight: 2
 description: "Lookup, filtering, sorting, statistics, and the text feed of the public read API."
 ---
 
-The base URL is `https://api.f2b.0xhw.com`. The public read API requires no authentication and handles IPv4 and IPv6. You can run GET requests from the [API reference](https://api.f2b.0xhw.com/docs). The [OpenAPI JSON](https://api.f2b.0xhw.com/openapi.json) is also available.
+The base URL is `https://api.f2b.0xhw.com`. This is a **read-only GET API**: you can search public observations without logging in, but you cannot change anyone's ban list.
 
-## Endpoints
+IPv4 and IPv6 are supported. If you want to try a request in your browser, use the [interactive API reference](https://api.f2b.0xhw.com/docs); the [OpenAPI specification](https://api.f2b.0xhw.com/openapi.json) is available as JSON.
+
+## What can you query?
 
 | Path | Purpose |
 | --- | --- |
@@ -17,7 +19,7 @@ The base URL is `https://api.f2b.0xhw.com`. The public read API requires no auth
 | `/v1/sources` | Collection sources and jail update state |
 | `/v1/feed.txt` | Deduplicated IP list of active observations |
 
-## Looking up an IP
+## Looking up one IP
 
 ```sh
 curl 'https://api.f2b.0xhw.com/v1/lookup?ip=1.1.1.1'
@@ -28,6 +30,8 @@ This IP is a call example. The API still responds normally when there are no obs
 `first_seen` and `last_seen` are Unix seconds. `active` and `stale` are returned as 0 or 1. See [Reading the data]({{< relref "/data/_index.md" >}}) for their meaning.
 
 ## Filtering and pagination
+
+You can narrow the results by country, jail, organization, or observation time instead of downloading the entire list. For example:
 
 ```sh
 curl 'https://api.f2b.0xhw.com/v1/ips?country=JP&jail=sshd&sort=last_seen&order=desc&limit=100'
@@ -62,9 +66,11 @@ curl -i 'https://api.f2b.0xhw.com/v1/feed.txt?country=JP&limit=1000'
 
 The feed returns one IP per line and accepts the same filters. The default order is by IP address; the cursor is bound to the filters. The limit defaults to 1000 and can be at most 5000. When `X-Truncated: true` is returned, pass `X-Next-Cursor` as the next `cursor` to continue.
 
+Do not copy the feed straight into a permanent blocklist. These are Fail2ban observations, not verified identities of attackers; review the [detection policies]({{< relref "/policies/_index.md" >}}) and the observation times first.
+
 ## Statistics
 
-`/v1/stats` accepts the same filters. Without `group_by`, it returns totals and counts by country, ASN, jail, and source. With `group_by`, it returns a single sorted aggregate list.
+If you need a summary rather than individual observations, use `/v1/stats`. It accepts the same filters. Without `group_by`, it returns totals and counts by country, ASN, jail, and source. With `group_by`, it returns a single sorted aggregate list.
 
 ```sh
 curl 'https://api.f2b.0xhw.com/v1/stats?country=JP&group_by=asn&sort=observations&order=desc&limit=20'
@@ -74,6 +80,6 @@ curl 'https://api.f2b.0xhw.com/v1/stats?country=JP&group_by=asn&sort=observation
 
 ## Caching and usage limits
 
-The API limits each client IP to roughly 120 requests per minute and returns 429 with `Retry-After` when the limit is exceeded. This limit is an approximation per site.
+The API limits each client IP to roughly 120 requests per minute and returns 429 with `Retry-After` when the limit is exceeded. The counter is approximate per edge location rather than an exact global counter.
 
 Statistics are cached for 15 minutes, the feed for 5 minutes, and other APIs for 1 minute. Results can therefore differ briefly right after a collection. Free-plan limits or temporary failures can also make the API unavailable; retry after an interval on error.

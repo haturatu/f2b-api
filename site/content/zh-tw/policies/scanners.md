@@ -4,9 +4,11 @@ weight: 1
 description: "單次符合即永久封鎖的 9 個 Jail，以及單獨不會觸發封鎖的請求。"
 ---
 
-本頁說明單次符合即永久封鎖的 9 個 Jail，以及單獨不會觸發封鎖的請求。
+這 9 個掃描器相關的 Jail 可以在**一筆日誌符合條件後就永久封鎖 IP**。與 SSH 按失敗次數判定不同，它們主要比對常見的掃描請求特徵。
 
-這 9 個 Jail 遵循[共用設定]({{< relref "/policies/_index.md" >}}#shared-scanner-settings)，並在單次偵測時永久封鎖。對特定路徑或 User-Agent 的存取，也視為收集來源運作上的封鎖標準。僅有存取行為，並不表示該產品存在弱點或攻擊已成功。
+不過，正常用戶端也可能使用相同的路徑、HTTP 方法或 User-Agent，所以排除條件同樣重要。**符合規則不代表攻擊成功，也不能據此認定發送者的身分。**
+
+9 個 Jail 都使用[共用設定]({{< relref "/policies/_index.md" >}}#shared-scanner-settings)。以下分別說明偵測範圍，以及刻意排除的情況。
 
 ## 機密檔案與 VCS
 
@@ -50,6 +52,8 @@ description: "單次符合即永久封鎖的 9 個 Jail，以及單獨不會觸�
 
 curl、wget、`python-urllib` 等常見 HTTP 用戶端，或空白的 User-Agent，單獨不會符合此條件。User-Agent 是自行申報的資訊，無法確認工具使用者或任何惡意意圖。
 
+因此，即使 User-Agent 寫著掃描器名稱，也無法可靠地辨識實際發送請求的人。
+
 ## 後門名稱與回應碼
 
 `nginx-scanner-backdoor` 針對 `shell`、`cmd`、`upload`、`alfa` 等設定檔名與設定的 PHP、ASP、JSP、CGI 副檔名之組合，並在回應為 **200 或 403** 時符合。
@@ -71,3 +75,5 @@ curl、wget、`python-urllib` 等常見 HTTP 用戶端，或空白的 User-Agent
 - `package.json` 的 200。
 
 以上說明掃描器防護中的單一請求條件。相同的請求若符合其他特徵，仍會被該 Jail 偵測。一般 HTTP 請求也可能符合[既有的 HTTP 次數規則]({{< relref "/policies/services.md" >}}#http)。
+
+這些只是收集來源目前採用的規則，**不是適合所有網站的通用建議設定**。若要在自己的服務使用類似規則，請先確認正常業務會用到的路徑與 HTTP 方法。
