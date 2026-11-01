@@ -10,7 +10,11 @@ const config = {
   account_id: "f3cd3d044c5e24de81291a737f1afc41",
   database_name: "f2b-api",
   database_id: "00000000-0000-4000-8000-000000000000",
-  workers: { api: { name: "f2b-api" }, ingest: { name: "f2b-ingest" } },
+  workers: {
+    api: { name: "f2b-api", hostname: "f2b.0xhw.com" },
+    ingest: { name: "f2b-ingest", hostname: "f2b-ingest.0xhw.com" },
+  },
+  api_hostname: "api.f2b.0xhw.com",
   source_scopes: {
     ["a".repeat(64)]: { source: "freebsd", jails: ["sshd", "postfix"] },
   },
@@ -57,6 +61,10 @@ describe("deployment configuration", () => {
     expect(api.d1_databases[0]).toMatchObject({
       binding: "DB",
       database_id: config.database_id,
+    });
+    expect(api.vars).toEqual({
+      API_HOST: "api.f2b.0xhw.com",
+      SITE_HOST: "f2b.0xhw.com",
     });
     expect(api.ratelimits).toEqual([
       {

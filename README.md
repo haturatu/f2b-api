@@ -19,7 +19,7 @@ flowchart LR
     P --> U[公開 REST API]
 ```
 
-公開 API は `https://f2b.0xhw.com`、収集 API は `https://f2b-ingest.0xhw.com` です。Workers は 2 個、D1 は 1 個を使用します。Containers、KV、R2、Durable Objects はアプリケーションの実行には不要です。インフラの既存 Terraform state・設定保存は、別の管理基盤が担当します。
+公開 API は `https://api.f2b.0xhw.com`、静的サイトは `https://f2b.0xhw.com`、収集 API は `https://f2b-ingest.0xhw.com` です。Workers は 2 個、D1 は 1 個を使用します。Containers、KV、R2、Durable Objects はアプリケーションの実行には不要です。インフラの既存 Terraform state・設定保存は、別の管理基盤が担当します。
 
 ## 静的ドキュメントサイト
 
@@ -31,7 +31,7 @@ Hugo の設定・本文・テーマ依存は `site/`、アセットの生成は 
 
 ## 公開 API
 
-[API ドキュメント](https://f2b.0xhw.com/docs)は Swagger UI で表示し、公開 GET API をブラウザーから実行できます。[OpenAPI JSON](https://f2b.0xhw.com/openapi.json)は同じ Worker から配信します。サーバー URL は相対パスのため、ドキュメントを開いたホストにリクエストします。
+[API ドキュメント](https://api.f2b.0xhw.com/docs)は Swagger UI で表示し、公開 GET API をブラウザーから実行できます。[OpenAPI JSON](https://api.f2b.0xhw.com/openapi.json)は同じ Worker から配信します。サーバー URL は専用の API ホストを指します。
 
 Swagger UI の CSS と JavaScript は、バージョンを固定して jsDelivr から読み込み、SRI で整合性を検証します。CDN を利用できない場合も OpenAPI JSON を直接取得できます。画面と仕様のキャッシュ期間は 1 時間です。
 

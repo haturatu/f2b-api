@@ -16,10 +16,10 @@ An IP record means that the address matched a blocking rule on one of the collec
 
 ## Quick start
 
-- [API reference and in-browser calls](/docs)
-- [OpenAPI 3.1 specification](/openapi.json)
-- [Current statistics](/v1/stats)
-- [Currently active IPs](/v1/ips)
+- [API reference and in-browser calls](https://api.f2b.0xhw.com/docs)
+- [OpenAPI 3.1 specification](https://api.f2b.0xhw.com/openapi.json)
+- [Current statistics](https://api.f2b.0xhw.com/v1/stats)
+- [Currently active IPs](https://api.f2b.0xhw.com/v1/ips)
 - [Existing HTML reports](https://soulminingrig.com/f2b-report/)
 
 ## What is published

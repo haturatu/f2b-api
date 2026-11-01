@@ -1,14 +1,18 @@
-import {
-  cutoff,
-  Env,
-  errorResponse,
-  HttpError,
-  LABEL,
-  response,
-} from "./types";
+import { cutoff, Env, errorResponse, HttpError, response } from "./types";
 import { normalizeIP } from "./validation";
 import { docsPage, openapiDocument } from "./docs";
 import { siteResponse, siteVersion } from "./site";
+import {
+  buildFilters,
+  decodeCursor,
+  decodeFeedCursor,
+  encodeCursor,
+  encodeFeedCursor,
+  parseSort,
+  queryHash,
+  SORT_EXPRESSIONS,
+  SortKey,
+} from "./query";
 const JOIN =
   "FROM ip_observations o JOIN jail_state s ON s.source=o.source AND s.jail=o.jail";
 const FIELDS =
@@ -25,30 +29,43 @@ function pageLimit(url: URL, max = 500, fallback = 100): number {
     throw new HttpError(400, `limit must be between 1 and ${max}`);
   return n;
 }
-function encodeCursor(data: string[]): string {
-  return btoa(JSON.stringify(data))
-    .replaceAll("+", "-")
-    .replaceAll("/", "_")
-    .replaceAll("=", "");
+interface Observation {
+  ip: string;
+  source: string;
+  jail: string;
+  first_seen: number;
+  last_seen: number;
+  active: number;
+  country: string | null;
+  asn: number | null;
+  organization: string | null;
+  network: string | null;
+  stale: number;
 }
-function decodeCursor(value: string, size: number): string[] {
-  try {
-    if (value.length > 512) throw 0;
-    const parts: unknown = JSON.parse(
-      atob(value.replaceAll("-", "+").replaceAll("_", "/")),
-    );
-    if (
-      !Array.isArray(parts) ||
-      parts.length !== size ||
-      !parts.every((v) => typeof v === "string" && v.length <= 64)
-    )
-      throw 0;
-    normalizeIP(parts[0]);
-    if (parts.slice(1).some((v) => !LABEL.test(v))) throw 0;
-    return parts;
-  } catch {
-    throw new HttpError(400, "Invalid cursor");
-  }
+function sortValue(row: Observation, sort: SortKey): string | number {
+  if (sort === "country") return row.country ?? "";
+  if (sort === "asn") return row.asn ?? 0;
+  if (sort === "organization") return row.organization ?? "";
+  return row[sort as keyof Observation] as string | number;
+}
+const API_PATH = /^\/(?:v1(?:\/|$)|health$|docs(?:\/|$)|openapi\.json$)/;
+function hostRedirect(url: URL, env: Env): Response | undefined {
+  if (!env.API_HOST || !env.SITE_HOST) return undefined;
+  const apiHost = url.hostname === env.API_HOST;
+  const siteHost = url.hostname === env.SITE_HOST;
+  if (!apiHost && !siteHost) return undefined;
+  const apiPath = API_PATH.test(url.pathname);
+  if (apiHost === apiPath) return undefined;
+  const target = new URL(url);
+  target.protocol = "https:";
+  target.host = apiHost ? env.SITE_HOST : env.API_HOST;
+  return new Response(null, {
+    status: 308,
+    headers: {
+      Location: target.toString(),
+      "Cache-Control": "public, max-age=3600",
+    },
+  });
 }
 async function route(request: Request, url: URL, env: Env): Promise<Response> {
   if (url.pathname === "/docs" || url.pathname === "/docs/") return docsPage();
@@ -84,65 +101,58 @@ async function route(request: Request, url: URL, env: Env): Promise<Response> {
     return response({ sources: data.results });
   }
   if (url.pathname === "/v1/ips") {
-    const where: string[] = [];
-    const args: (string | number)[] = [fresh];
-    const active = url.searchParams.get("active") ?? "true";
-    if (!["true", "false", "all"].includes(active))
-      throw new HttpError(400, "Invalid active filter");
-    if (active !== "all") {
-      where.push("o.active=?");
-      args.push(active === "true" ? 1 : 0);
-    }
-    if (active === "true") {
-      where.push("s.collected_at>=?");
-      args.push(fresh);
-    }
-    for (const key of ["source", "jail", "country"]) {
-      const value = url.searchParams.get(key);
-      if (value !== null) {
-        if (!(key === "country" ? /^[A-Z]{2}$/.test(value) : LABEL.test(value)))
-          throw new HttpError(400, "Invalid filter");
-        where.push(`o.${key}=?`);
-        args.push(value);
-      }
-    }
-    const asn = url.searchParams.get("asn");
-    if (asn !== null) {
-      if (!/^\d+$/.test(asn) || Number(asn) < 1 || Number(asn) > 4294967295)
-        throw new HttpError(400, "Invalid ASN");
-      where.push("o.asn=?");
-      args.push(Number(asn));
-    }
+    const filters = buildFilters(url, fresh);
+    const { sort, order } = parseSort(url);
+    const hash = queryHash(filters.canonical, sort, order);
+    const expression = SORT_EXPRESSIONS[sort];
+    const where = [...filters.where];
+    const args = [fresh, ...filters.args];
     const cursor = url.searchParams.get("cursor");
     if (cursor) {
-      where.push("(o.ip,o.source,o.jail)>(?,?,?)");
-      args.push(...decodeCursor(cursor, 3));
+      const decoded = decodeCursor(cursor, hash, sort);
+      where.push(
+        `(${expression},o.ip,o.source,o.jail)${order === "asc" ? ">" : "<"}(?,?,?,?)`,
+      );
+      args.push(decoded.v, ...decoded.k);
     }
     const limit = pageLimit(url);
     args.push(limit + 1);
+    const direction = order.toUpperCase();
     const data = await env.DB.prepare(
-      `SELECT ${FIELDS} ${JOIN} ${where.length ? "WHERE " + where.join(" AND ") : ""} ORDER BY o.ip,o.source,o.jail LIMIT ?`,
+      `SELECT ${FIELDS} ${JOIN} ${where.length ? "WHERE " + where.join(" AND ") : ""} ORDER BY ${expression} ${direction},o.ip ${direction},o.source ${direction},o.jail ${direction} LIMIT ?`,
     )
       .bind(...args)
-      .all<{ ip: string; source: string; jail: string }>();
+      .all<Observation>();
     const rows = data.results.slice(0, limit);
     const last = rows.at(-1);
     return response({
       observations: rows,
       next_cursor:
         data.results.length > limit && last
-          ? encodeCursor([last.ip, last.source, last.jail])
+          ? encodeCursor(hash, sortValue(last, sort), [
+              last.ip,
+              last.source,
+              last.jail,
+            ])
           : null,
     });
   }
   if (url.pathname === "/v1/feed.txt") {
-    const limit = pageLimit(url, 5000, 1000);
+    const filters = buildFilters(url, fresh);
+    const hash = queryHash(filters.canonical, "ip", "asc");
+    const where = [...filters.where];
+    const args = [...filters.args];
     const cursor = url.searchParams.get("cursor");
-    const after = cursor ? decodeCursor(cursor, 1)[0] : "";
+    if (cursor) {
+      where.push("o.ip>?");
+      args.push(decodeFeedCursor(cursor, hash));
+    }
+    const limit = pageLimit(url, 5000, 1000);
+    args.push(limit + 1);
     const data = await env.DB.prepare(
-      `SELECT DISTINCT o.ip ${JOIN} WHERE o.active=1 AND s.collected_at>=? AND o.ip>? ORDER BY o.ip LIMIT ?`,
+      `SELECT DISTINCT o.ip ${JOIN} ${where.length ? "WHERE " + where.join(" AND ") : ""} ORDER BY o.ip LIMIT ?`,
     )
-      .bind(fresh, after, limit + 1)
+      .bind(...args)
       .all<{ ip: string }>();
     const rows = data.results.slice(0, limit);
     const truncated = data.results.length > limit;
@@ -152,34 +162,61 @@ async function route(request: Request, url: URL, env: Env): Promise<Response> {
         headers: {
           "Content-Type": "text/plain; charset=utf-8",
           "X-Truncated": String(truncated),
-          ...(truncated
-            ? { "X-Next-Cursor": encodeCursor([rows.at(-1)!.ip]) }
+          ...(truncated && rows.length
+            ? { "X-Next-Cursor": encodeFeedCursor(hash, rows.at(-1)!.ip) }
             : {}),
         },
       },
     );
   }
   if (url.pathname === "/v1/stats") {
-    const active = `${JOIN} WHERE o.active=1 AND s.collected_at>=?`;
-    const statements = [
-      env.DB.prepare(
-        `SELECT COUNT(*) AS observations,COUNT(DISTINCT o.ip) AS ips ${active}`,
-      ).bind(fresh),
-    ];
-    for (const group of ["country", "asn", "jail", "source"]) {
-      statements.push(
-        env.DB.prepare(
-          `SELECT o.${group} AS value,COUNT(*) AS observations,COUNT(DISTINCT o.ip) AS ips ${active} GROUP BY o.${group} ORDER BY observations DESC LIMIT 100`,
-        ).bind(fresh),
-      );
+    const filters = buildFilters(url, fresh);
+    const where = filters.where.length
+      ? "WHERE " + filters.where.join(" AND ")
+      : "";
+    const group = url.searchParams.get("group_by");
+    const order = url.searchParams.get("order") ?? "desc";
+    if (order !== "asc" && order !== "desc")
+      throw new HttpError(400, "Invalid order");
+    const sort = url.searchParams.get("sort") ?? "observations";
+    if (!["observations", "ips", "value"].includes(sort))
+      throw new HttpError(400, "Invalid sort");
+    const limit = pageLimit(url, 500, 100);
+    const summary = env.DB.prepare(
+      `SELECT COUNT(*) AS observations,COUNT(DISTINCT o.ip) AS ips ${JOIN} ${where}`,
+    ).bind(...filters.args);
+    if (group === null) {
+      const statements = [summary];
+      for (const key of ["country", "asn", "jail", "source"]) {
+        statements.push(
+          env.DB.prepare(
+            `SELECT o.${key} AS value,COUNT(*) AS observations,COUNT(DISTINCT o.ip) AS ips ${JOIN} ${where} GROUP BY o.${key} ORDER BY observations DESC,value ASC LIMIT 100`,
+          ).bind(...filters.args),
+        );
+      }
+      const data = await env.DB.batch(statements);
+      return response({
+        active: data[0].results[0],
+        countries: data[1].results,
+        asns: data[2].results,
+        jails: data[3].results,
+        sources: data[4].results,
+      });
     }
-    const data = await env.DB.batch(statements);
+    if (!["country", "asn", "jail", "source"].includes(group))
+      throw new HttpError(400, "Invalid group_by");
+    const direction = order.toUpperCase();
+    const sortExpression = sort === "value" ? `o.${group}` : sort;
+    const groups = env.DB.prepare(
+      `SELECT o.${group} AS value,COUNT(*) AS observations,COUNT(DISTINCT o.ip) AS ips ${JOIN} ${where} GROUP BY o.${group} ORDER BY ${sortExpression} ${direction},value ASC LIMIT ?`,
+    ).bind(...filters.args, limit);
+    const data = await env.DB.batch([summary, groups]);
     return response({
       active: data[0].results[0],
-      countries: data[1].results,
-      asns: data[2].results,
-      jails: data[3].results,
-      sources: data[4].results,
+      group_by: group,
+      sort,
+      order,
+      groups: data[1].results,
     });
   }
   const page = siteResponse(request);
@@ -197,6 +234,9 @@ export default {
         return new Response(null, { status: 204, headers: cors });
       if (!["GET", "HEAD"].includes(request.method))
         throw new HttpError(405, "Method not allowed");
+      const url = new URL(request.url);
+      const redirect = hostRedirect(url, env);
+      if (redirect) return redirect;
       if (
         env.READ_LIMITER &&
         !(
@@ -211,7 +251,6 @@ export default {
           limited.headers.set(key, value);
         return limited;
       }
-      const url = new URL(request.url);
       url.searchParams.sort();
       const cacheURL = new URL(url);
       cacheURL.searchParams.set("__f2b_release", siteVersion);

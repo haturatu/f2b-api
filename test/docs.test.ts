@@ -51,7 +51,7 @@ describe("public API documentation", () => {
     expect(spec).toEqual(checkedIn);
     expect(spec.openapi).toBe("3.1.0");
     expect(spec.servers).toEqual([
-      { url: "/", description: expect.any(String) },
+      { url: "https://api.f2b.0xhw.com", description: expect.any(String) },
     ]);
     expect(Object.keys(spec.paths)).toHaveLength(6);
     for (const path of Object.values(spec.paths))

@@ -1,5 +1,5 @@
 ---
-title: "$ curl https://f2b.0xhw.com/v1/ips | jq"
+title: "$ curl https://api.f2b.0xhw.com/v1/ips | jq"
 description: "複数の収集元が記録した BAN の観測と、その検知ポリシーを公開します。"
 toc: false
 ---
@@ -16,10 +16,10 @@ IP の記録は、各収集元の遮断基準に一致したことを示しま�
 
 ## すぐに使う
 
-- [API リファレンスとブラウザーからの実行](/docs)
-- [OpenAPI 3.1 仕様](/openapi.json)
-- [現在の統計](/v1/stats)
-- [現在有効な IP 一覧](/v1/ips)
+- [API リファレンスとブラウザーからの実行](https://api.f2b.0xhw.com/docs)
+- [OpenAPI 3.1 仕様](https://api.f2b.0xhw.com/openapi.json)
+- [現在の統計](https://api.f2b.0xhw.com/v1/stats)
+- [現在有効な IP 一覧](https://api.f2b.0xhw.com/v1/ips)
 - [既存の HTML レポート](https://soulminingrig.com/f2b-report/)
 
 ## 公開しているもの

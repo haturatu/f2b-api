@@ -1,5 +1,7 @@
 export interface Env {
   DB: D1Database;
+  API_HOST?: string;
+  SITE_HOST?: string;
   READ_LIMITER?: {
     limit(options: { key: string }): Promise<{ success: boolean }>;
   };

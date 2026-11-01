@@ -351,3 +351,244 @@ describe("public API", () => {
     );
   });
 });
+
+describe("query filters, sorting and aggregated statistics", () => {
+  interface Seed {
+    ip: string;
+    first: number;
+    last: number;
+    collected?: number;
+    country?: string;
+    asn?: number;
+    organization?: string;
+    active?: number;
+    source?: string;
+    jail?: string;
+  }
+
+  async function seed(rows: Seed[]) {
+    const states = new Map<
+      string,
+      { source: string; jail: string; collected: number }
+    >();
+    for (const row of rows) {
+      const source = row.source ?? "test";
+      const jail = row.jail ?? "sshd";
+      const collected = row.collected ?? row.last;
+      const key = `${source}\u0000${jail}`;
+      const previous = states.get(key);
+      if (!previous || collected > previous.collected)
+        states.set(key, { source, jail, collected });
+    }
+    for (const state of states.values())
+      await env.DB.prepare(
+        "INSERT OR REPLACE INTO jail_state(source,jail,snapshot_hash,collected_at,currently_banned,total_banned,public_ip_count,write_token) VALUES(?,?,?,?,?,?,?,?)",
+      )
+        .bind(
+          state.source,
+          state.jail,
+          "seed",
+          state.collected,
+          1,
+          1,
+          1,
+          "token",
+        )
+        .run();
+    for (const row of rows)
+      await env.DB.prepare(
+        "INSERT OR REPLACE INTO ip_observations(source,jail,ip,first_seen,last_seen,active,country,asn,organization,network) VALUES(?,?,?,?,?,?,?,?,?,?)",
+      )
+        .bind(
+          row.source ?? "test",
+          row.jail ?? "sshd",
+          row.ip,
+          row.first,
+          row.last,
+          row.active ?? 1,
+          row.country === undefined ? "AU" : row.country,
+          row.asn === undefined ? 13335 : row.asn,
+          row.organization === undefined ? "Test" : row.organization,
+          null,
+        )
+        .run();
+  }
+
+  it("filters by prefix, organization, time range, stale and active", async () => {
+    const t = now();
+    await seed([
+      {
+        ip: "1.1.1.1",
+        first: t - 1000,
+        last: t - 500,
+        country: "JP",
+        asn: 13335,
+        organization: "Cloudflare",
+        jail: "sshd",
+      },
+      {
+        ip: "8.8.8.8",
+        first: t - 2000,
+        last: t - 100,
+        country: "US",
+        asn: 15169,
+        organization: "Google",
+        jail: "nginx",
+      },
+      {
+        ip: "9.9.9.9",
+        first: t - 3000,
+        last: t - 900,
+        country: "JP",
+        asn: 13335,
+        organization: "Cloudflare",
+        jail: "postfix",
+      },
+      {
+        ip: "1.0.1.1",
+        first: t - 4000,
+        last: t - 4000,
+        collected: t - 3 * 86400,
+        country: "JP",
+        asn: 13335,
+        organization: "Cloudflare",
+        jail: "recidive",
+      },
+    ]);
+    const ips = async (query: string) =>
+      ((await (await get("/v1/ips?" + query)).json()) as any).observations.map(
+        (row: any) => row.ip,
+      );
+    expect(await ips("ip_prefix=1.1.")).toEqual(["1.1.1.1"]);
+    expect(await ips("organization=cloudflare")).toEqual([
+      "1.1.1.1",
+      "9.9.9.9",
+    ]);
+    expect(await ips("organization=cloudflare&active=all")).toHaveLength(3);
+    expect(await ips(`country=JP&first_seen_from=${t - 2500}`)).toEqual([
+      "1.1.1.1",
+    ]);
+    expect(await ips(`last_seen_to=${t - 800}`)).toEqual(["9.9.9.9"]);
+    expect(await ips("active=all&stale=true")).toEqual(["1.0.1.1"]);
+    expect(await ips("active=all&stale=false")).toHaveLength(3);
+  });
+
+  it("sorts across pages without duplicates and rejects a cursor from another query", async () => {
+    const t = now();
+    await seed(
+      ["1.1.1.1", "8.8.8.8", "9.9.9.9", "1.0.1.1", "4.4.4.4"].map(
+        (ip, index) => ({
+          ip,
+          first: t - 1000 + index * 10,
+          last: t - 500 + index * 10,
+          jail: ["sshd", "nginx", "postfix", "dovecot", "recidive"][index],
+        }),
+      ),
+    );
+    const collected: string[] = [];
+    let cursor: string | null = null;
+    for (let page = 0; page < 4; page++) {
+      const query =
+        `/v1/ips?sort=last_seen&order=desc&limit=2` +
+        (cursor ? `&cursor=${cursor}` : "");
+      const data = (await (await get(query)).json()) as any;
+      collected.push(...data.observations.map((row: any) => row.ip));
+      cursor = data.next_cursor;
+      if (!cursor) break;
+    }
+    expect(collected).toEqual([
+      "4.4.4.4",
+      "1.0.1.1",
+      "9.9.9.9",
+      "8.8.8.8",
+      "1.1.1.1",
+    ]);
+    const first = (await (
+      await get("/v1/ips?sort=last_seen&order=desc&limit=1")
+    ).json()) as any;
+    expect(
+      (
+        await get(
+          `/v1/ips?sort=first_seen&order=desc&cursor=${first.next_cursor}`,
+        )
+      ).status,
+    ).toBe(400);
+  });
+
+  it("applies filters to statistics and groups by a selected column", async () => {
+    const t = now();
+    await seed([
+      {
+        ip: "1.1.1.1",
+        first: t - 100,
+        last: t - 50,
+        country: "JP",
+        asn: 13335,
+        jail: "sshd",
+      },
+      {
+        ip: "9.9.9.9",
+        first: t - 200,
+        last: t - 60,
+        country: "JP",
+        asn: 13335,
+        jail: "nginx",
+      },
+      {
+        ip: "8.8.8.8",
+        first: t - 300,
+        last: t - 70,
+        country: "US",
+        asn: 15169,
+        jail: "postfix",
+      },
+    ]);
+    const filtered = (await (await get("/v1/stats?country=JP")).json()) as any;
+    expect(filtered.active.observations).toBe(2);
+    expect(filtered.countries).toEqual([
+      { value: "JP", observations: 2, ips: 2 },
+    ]);
+    const grouped = (await (
+      await get(
+        "/v1/stats?country=JP&group_by=asn&sort=observations&order=desc&limit=1",
+      )
+    ).json()) as any;
+    expect(grouped.group_by).toBe("asn");
+    expect(grouped.groups).toEqual([{ value: 13335, observations: 2, ips: 2 }]);
+    expect((await get("/v1/stats?group_by=bogus")).status).toBe(400);
+  });
+
+  it("applies filters and cursor binding to the text feed", async () => {
+    const t = now();
+    await seed([
+      { ip: "1.1.1.1", first: t - 100, last: t - 50, country: "JP" },
+      { ip: "8.8.8.8", first: t - 200, last: t - 60, country: "US" },
+      { ip: "9.9.9.9", first: t - 300, last: t - 70, country: "JP" },
+    ]);
+    const feed = await get("/v1/feed.txt?country=JP&limit=1");
+    expect((await feed.text()).trim()).toBe("1.1.1.1");
+    const cursor = feed.headers.get("X-Next-Cursor")!;
+    expect(cursor).toBeTruthy();
+    const next = await get(`/v1/feed.txt?country=JP&limit=1&cursor=${cursor}`);
+    expect((await next.text()).trim()).toBe("9.9.9.9");
+    expect(
+      (await get(`/v1/feed.txt?country=US&limit=1&cursor=${cursor}`)).status,
+    ).toBe(400);
+  });
+
+  it("rejects invalid filters, sorts and ranges", async () => {
+    for (const path of [
+      "/v1/ips?sort=bogus",
+      "/v1/ips?order=bogus",
+      "/v1/ips?stale=maybe",
+      "/v1/ips?ip_prefix=%25",
+      "/v1/ips?organization=",
+      "/v1/ips?first_seen_from=abc",
+      "/v1/ips?first_seen_from=20&first_seen_to=10",
+      "/v1/stats?sort=bogus",
+      "/v1/stats?order=bogus",
+      "/v1/stats?limit=999999",
+    ])
+      expect((await get(path)).status, path).toBe(400);
+  });
+});

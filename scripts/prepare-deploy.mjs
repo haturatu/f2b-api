@@ -46,6 +46,13 @@ const workers = object(config.workers, "workers");
 const api = object(workers.api, "workers.api");
 const ingest = object(workers.ingest, "workers.ingest");
 const apiName = text(api.name, "workers.api.name", /^[a-z0-9][a-z0-9-]{0,62}$/);
+const hostname =
+  /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/;
+const siteHostname = text(api.hostname, "workers.api.hostname", hostname);
+const apiHostname =
+  config.api_hostname == null
+    ? undefined
+    : text(config.api_hostname, "api_hostname", hostname);
 const ingestName = text(
   ingest.name,
   "workers.ingest.name",
@@ -98,6 +105,9 @@ const apiConfig = {
   ...base,
   name: apiName,
   main: "../dist/api.js",
+  ...(apiHostname
+    ? { vars: { API_HOST: apiHostname, SITE_HOST: siteHostname } }
+    : {}),
   ratelimits: [
     {
       name: "READ_LIMITER",

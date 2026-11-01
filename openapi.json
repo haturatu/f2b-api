@@ -11,8 +11,8 @@
   },
   "servers": [
     {
-      "url": "/",
-      "description": "The host serving this document"
+      "url": "https://api.f2b.0xhw.com",
+      "description": "Public read API"
     }
   ],
   "paths": {
@@ -87,7 +87,7 @@
     },
     "/v1/ips": {
       "get": {
-        "summary": "Paged observations; active fresh bans by default",
+        "summary": "Paged observations with filters, sorting and cursor pagination",
         "parameters": [
           {
             "name": "limit",
@@ -106,9 +106,9 @@
             "required": false,
             "schema": {
               "type": "string",
-              "maxLength": 512
+              "maxLength": 2048
             },
-            "description": "Opaque cursor from next_cursor or X-Next-Cursor. Keep the other filters unchanged."
+            "description": "Opaque cursor from next_cursor or X-Next-Cursor. It is bound to the filters and sort; reuse with different conditions returns 400."
           },
           {
             "name": "source",
@@ -157,6 +157,114 @@
               "default": "true"
             },
             "description": "true: fresh active observations; false: inactive observations; all: full history including stale sources."
+          },
+          {
+            "name": "stale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["true", "false"]
+            },
+            "description": "true only for sources whose last collection is older than the stale threshold."
+          },
+          {
+            "name": "ip_prefix",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40,
+              "pattern": "^[0-9a-fA-F:.]+$"
+            },
+            "description": "Text prefix match on the canonical IP address."
+          },
+          {
+            "name": "organization",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Case-insensitive substring match on the organization name."
+          },
+          {
+            "name": "first_seen_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000000000
+            },
+            "description": "Unix seconds; inclusive lower bound."
+          },
+          {
+            "name": "first_seen_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000000000
+            },
+            "description": "Unix seconds; inclusive upper bound."
+          },
+          {
+            "name": "last_seen_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000000000
+            },
+            "description": "Unix seconds; inclusive lower bound on the effective last-seen time."
+          },
+          {
+            "name": "last_seen_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000000000
+            },
+            "description": "Unix seconds; inclusive upper bound on the effective last-seen time."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ip",
+                "source",
+                "jail",
+                "country",
+                "asn",
+                "organization",
+                "active",
+                "first_seen",
+                "last_seen"
+              ],
+              "default": "ip"
+            },
+            "description": "Sort key. Empty country and organization values sort before non-empty values; a missing ASN sorts as 0."
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["asc", "desc"],
+              "default": "asc"
+            }
           }
         ],
         "responses": {
@@ -181,13 +289,182 @@
           }
         },
         "operationId": "listObservations",
-        "tags": ["Public API"]
+        "tags": ["Public API"],
+        "description": "Filter, sort and page observations. Ties are broken by ip, source and jail so that pages never duplicate or skip rows."
       }
     },
     "/v1/stats": {
       "get": {
-        "summary": "Counts of fresh active observations and unique IPs grouped by country, ASN, jail and source",
-        "parameters": [],
+        "summary": "Filtered counts and per-column aggregates",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9_.-]{0,63}$"
+            }
+          },
+          {
+            "name": "jail",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9_.-]{0,63}$"
+            }
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z]{2}$"
+            }
+          },
+          {
+            "name": "asn",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4294967295
+            }
+          },
+          {
+            "name": "active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["true", "false", "all"],
+              "default": "true"
+            },
+            "description": "true: fresh active observations; false: inactive observations; all: full history including stale sources."
+          },
+          {
+            "name": "stale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["true", "false"]
+            },
+            "description": "true only for sources whose last collection is older than the stale threshold."
+          },
+          {
+            "name": "ip_prefix",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40,
+              "pattern": "^[0-9a-fA-F:.]+$"
+            },
+            "description": "Text prefix match on the canonical IP address."
+          },
+          {
+            "name": "organization",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Case-insensitive substring match on the organization name."
+          },
+          {
+            "name": "first_seen_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000000000
+            },
+            "description": "Unix seconds; inclusive lower bound."
+          },
+          {
+            "name": "first_seen_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000000000
+            },
+            "description": "Unix seconds; inclusive upper bound."
+          },
+          {
+            "name": "last_seen_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000000000
+            },
+            "description": "Unix seconds; inclusive lower bound on the effective last-seen time."
+          },
+          {
+            "name": "last_seen_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000000000
+            },
+            "description": "Unix seconds; inclusive upper bound on the effective last-seen time."
+          },
+          {
+            "name": "group_by",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["country", "asn", "jail", "source"]
+            },
+            "description": "Return a single aggregate list grouped by this column."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["observations", "ips", "value"],
+              "default": "observations"
+            },
+            "description": "Sort the group_by list."
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["asc", "desc"],
+              "default": "desc"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful result",
@@ -210,7 +487,8 @@
           }
         },
         "operationId": "getStats",
-        "tags": ["Public API"]
+        "tags": ["Public API"],
+        "description": "Apply the same filters as /v1/ips. Without group_by, return counts grouped by country, ASN, jail and source. With group_by, return a single sorted aggregate list."
       }
     },
     "/v1/sources": {
@@ -244,7 +522,7 @@
     },
     "/v1/feed.txt": {
       "get": {
-        "summary": "Deduplicated fresh active IPs; use X-Next-Cursor to continue",
+        "summary": "Deduplicated IPs with the same filters, ordered by IP",
         "parameters": [
           {
             "name": "limit",
@@ -263,9 +541,134 @@
             "required": false,
             "schema": {
               "type": "string",
-              "maxLength": 512
+              "maxLength": 2048
             },
-            "description": "Opaque cursor from next_cursor or X-Next-Cursor. Keep the other filters unchanged."
+            "description": "Opaque cursor from next_cursor or X-Next-Cursor. It is bound to the filters and sort; reuse with different conditions returns 400."
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9_.-]{0,63}$"
+            }
+          },
+          {
+            "name": "jail",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9_.-]{0,63}$"
+            }
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z]{2}$"
+            }
+          },
+          {
+            "name": "asn",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4294967295
+            }
+          },
+          {
+            "name": "active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["true", "false", "all"],
+              "default": "true"
+            },
+            "description": "true: fresh active observations; false: inactive observations; all: full history including stale sources."
+          },
+          {
+            "name": "stale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["true", "false"]
+            },
+            "description": "true only for sources whose last collection is older than the stale threshold."
+          },
+          {
+            "name": "ip_prefix",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40,
+              "pattern": "^[0-9a-fA-F:.]+$"
+            },
+            "description": "Text prefix match on the canonical IP address."
+          },
+          {
+            "name": "organization",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Case-insensitive substring match on the organization name."
+          },
+          {
+            "name": "first_seen_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000000000
+            },
+            "description": "Unix seconds; inclusive lower bound."
+          },
+          {
+            "name": "first_seen_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000000000
+            },
+            "description": "Unix seconds; inclusive upper bound."
+          },
+          {
+            "name": "last_seen_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000000000
+            },
+            "description": "Unix seconds; inclusive lower bound on the effective last-seen time."
+          },
+          {
+            "name": "last_seen_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000000000
+            },
+            "description": "Unix seconds; inclusive upper bound on the effective last-seen time."
           }
         ],
         "responses": {
@@ -306,7 +709,8 @@
           }
         },
         "operationId": "getIPFeed",
-        "tags": ["Public API"]
+        "tags": ["Public API"],
+        "description": "Return one IP per line. The cursor is bound to the filters; reuse with different conditions returns 400."
       }
     }
   },
@@ -529,7 +933,7 @@
       },
       "Stats": {
         "type": "object",
-        "required": ["active", "countries", "asns", "jails", "sources"],
+        "required": ["active"],
         "properties": {
           "active": {
             "$ref": "#/components/schemas/Counts"
@@ -621,6 +1025,43 @@
               "additionalProperties": false
             },
             "maxItems": 100
+          },
+          "group_by": {
+            "type": "string",
+            "enum": ["country", "asn", "jail", "source"]
+          },
+          "sort": {
+            "type": "string",
+            "enum": ["observations", "ips", "value"]
+          },
+          "order": {
+            "type": "string",
+            "enum": ["asc", "desc"]
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StatsGroup"
+            },
+            "maxItems": 500
+          }
+        },
+        "additionalProperties": false
+      },
+      "StatsGroup": {
+        "type": "object",
+        "required": ["value", "observations", "ips"],
+        "properties": {
+          "value": {
+            "type": ["string", "integer", "null"]
+          },
+          "observations": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "ips": {
+            "type": "integer",
+            "minimum": 0
           }
         },
         "additionalProperties": false
