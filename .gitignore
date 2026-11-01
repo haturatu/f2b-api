@@ -7,3 +7,7 @@ dist/
 .dev.vars*
 *.sqlite*
 coverage/
+site/public/
+site/generated/
+site/resources/
+site/.hugo_build.lock

@@ -1,0 +1,18 @@
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 3px;
+}
+:where(h1, h2, h3, h4) { scroll-margin-top: 6rem; }
+:where(input, select, textarea) { font-size: 16px; }
+:where(pre, code) { font-variant-numeric: tabular-nums; }
+@media (max-width: 767px) {
+  button, input, select { min-height: 44px; }
+  nav a { min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
