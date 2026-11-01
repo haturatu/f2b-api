@@ -1,29 +1,43 @@
 ---
 title: "$ curl https://api.f2b.0xhw.com/v1/ips | jq"
-description: "複数の収集元が記録した BAN の観測と、その検知ポリシーを公開します。"
+description: "Fail2ban が記録した IP の観測データと、遮断に使っている条件を公開しています。"
 toc: false
 ---
 
-**f2b-api** は、Fail2ban が記録した IP を集約する公開 API です。IPv4 と IPv6 の検索、Jail ごとの観測、国別・ASN 別の統計、重複を除いた IP フィードを提供します。
+**f2b-api** は、複数のサーバーで Fail2ban が記録した IP をまとめて検索するための公開 API です。
 
-IP の記録は、各収集元の遮断基準に一致したことを示します。**悪意や侵害が確認されたことを意味しません。** 共有 IP、動的な割り当て、設定に依存する誤検知を考慮して利用してください。
+以前から Fail2ban の状態を HTML レポートとして出していましたが、特定の IP を調べたり、Jail ごとの違いを見たりするには少し使いづらいところがありました。というわけで、IPv4 / IPv6 の検索、国・ASN 別の統計、重複を除いた IP 一覧などを API から取得できるようにしています。
+
+ただし、**ここに載っている IP が必ず攻撃者というわけではありません**。
+
+あくまでも「収集元の Fail2ban が、設定された条件に一致した」と記録しているだけです。CGNAT で共有される IPv4 や、動的 IP の再割り当て、ログの誤検知などを考えると、IP だけで利用者や悪意を断定することはできません。
 
 {{< cards >}}
-  {{< card link="policies/" title="遮断ポリシー" icon="shield-check" subtitle="通常の認証失敗、繰り返し検知、一度の一致で永久 BAN する条件を確認します。" >}}
-  {{< card link="api/" title="API の使い方" icon="code" subtitle="IP 検索、ページング、統計、テキストフィードを利用します。" >}}
-  {{< card link="data/" title="データの読み方" icon="database" subtitle="観測時刻、現在の BAN、解除済み・更新停止の違いを確認します。" >}}
+  {{< card link="policies/" title="遮断ポリシー" icon="shield-check" subtitle="どんなログで BAN するのか。回数判定と永久 BAN の条件。" >}}
+  {{< card link="api/" title="API の使い方" icon="code" subtitle="検索、絞り込み、ページング、統計、テキストフィード。" >}}
+  {{< card link="data/" title="データの読み方" icon="database" subtitle="観測時刻、BAN の解除、収集が止まった場合の扱い。" >}}
 {{< /cards >}}
 
-## すぐに使う
+## とりあえず使ってみる
 
-- [API リファレンスとブラウザーからの実行](https://api.f2b.0xhw.com/docs)
+[API リファレンス](https://api.f2b.0xhw.com/docs)からブラウザーで GET を試せます。curl でもそのまま取得できます。
+
+```sh
+curl 'https://api.f2b.0xhw.com/v1/stats' | jq
+curl 'https://api.f2b.0xhw.com/v1/ips?limit=10' | jq
+```
+
 - [OpenAPI 3.1 仕様](https://api.f2b.0xhw.com/openapi.json)
 - [現在の統計](https://api.f2b.0xhw.com/v1/stats)
 - [現在有効な IP 一覧](https://api.f2b.0xhw.com/v1/ips)
-- [既存の HTML レポート](https://soulminingrig.com/f2b-report/)
+- [従来の HTML レポート](https://soulminingrig.com/f2b-report/)
+
+公開の読み取り API には認証が必要ありません。BAN 状態を書き換えたり、各サーバーのファイアウォールを操作したりする機能はありません。
 
 ## 公開しているもの
 
-収集元の公開ラベル、Jail 名、観測された IP、初回・最終確認時刻、国・ASN・組織などの付加情報を提供します。サイトでは、それらの観測を生むポリシーと判定上の制約を説明します。
+収集元の公開用ラベル、Jail 名、IP、初回・最終観測時刻、現在の BAN 状態、国・ASN・組織などの付加情報を公開しています。
 
-API の公開読み取り機能は認証不要です。全体の構成は[このサービスについて]({{< relref "/about/_index.md" >}})を参照してください。
+一方で、生のアクセスログ、アカウント名、認証情報、管理用の除外リストは公開していません。
+
+収集の仕組みは[このサービスについて]({{< relref "/about/_index.md" >}})、各フィールドの意味は[データの読み方]({{< relref "/data/_index.md" >}})にまとめています。
