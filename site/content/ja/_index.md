@@ -1,5 +1,5 @@
 ---
-title: "Fail2ban の観測を、検索できるデータに。"
+title: "$ curl 'https://f2b.0xhw.com/v1/ips?limit=100&active=true' | jq"
 description: "複数の収集元が記録した BAN の観測と、その検知ポリシーを公開します。"
 toc: false
 ---

@@ -22,7 +22,7 @@ describe("Hugo documentation site", () => {
     expect(ja.status).toBe(200);
     expect(ja.headers.get("Content-Type")).toContain("text/html");
     expect(await ja.text()).toContain(
-      "Fail2ban の観測を、検索できるデータに。",
+      "$ curl 'https://f2b.0xhw.com/v1/ips?limit=100&amp;active=true' | jq",
     );
 
     const en = await get("/en/");
