@@ -1,0 +1,155 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Fail2ban collector ingestion API",
+    "version": "1.0.0",
+    "description": "Snapshot observations from Fail2ban sources. A recorded IP is not proof of malicious activity. Timestamps are collection times, not exact BAN-event times.",
+    "license": {
+      "name": "BSD-2-Clause",
+      "identifier": "BSD-2-Clause"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://f2b-ingest.0xhw.com"
+    }
+  ],
+  "paths": {
+    "/v1/ingest/snapshot/{source}": {
+      "post": {
+        "summary": "Authenticated full jail snapshot or hash heartbeat",
+        "servers": [
+          {
+            "url": "https://f2b-ingest.0xhw.com"
+          }
+        ],
+        "security": [
+          {
+            "AccessClientID": [],
+            "AccessClientSecret": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "schema_version",
+                  "source",
+                  "jail",
+                  "observed_at",
+                  "currently_banned",
+                  "total_banned"
+                ],
+                "properties": {
+                  "schema_version": {
+                    "const": 1
+                  },
+                  "source": {
+                    "type": "string"
+                  },
+                  "jail": {
+                    "type": "string"
+                  },
+                  "observed_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "currently_banned": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "total_banned": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "mode": {
+                    "enum": ["snapshot", "heartbeat"]
+                  },
+                  "snapshot_hash": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "ips": {
+                    "type": "array",
+                    "maxItems": 10000,
+                    "items": {
+                      "type": "object",
+                      "required": ["ip"],
+                      "properties": {
+                        "ip": {
+                          "type": "string"
+                        },
+                        "country": {
+                          "type": ["string", "null"]
+                        },
+                        "asn": {
+                          "type": ["integer", "null"]
+                        },
+                        "organization": {
+                          "type": ["string", "null"]
+                        },
+                        "network": {
+                          "type": ["string", "null"]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Snapshot committed or already applied"
+          },
+          "400": {
+            "description": "Invalid snapshot or address"
+          },
+          "403": {
+            "description": "Missing Access authentication or wrong source/jail scope"
+          },
+          "409": {
+            "description": "Stale, conflicting or missing full snapshot; retry full snapshot"
+          },
+          "413": {
+            "description": "Body exceeds 2 MiB"
+          },
+          "415": {
+            "description": "Expected application/json"
+          },
+          "503": {
+            "description": "Temporary service failure"
+          }
+        },
+        "parameters": [
+          {
+            "name": "source",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "AccessClientID": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "CF-Access-Client-Id"
+      },
+      "AccessClientSecret": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "CF-Access-Client-Secret"
+      }
+    }
+  }
+}

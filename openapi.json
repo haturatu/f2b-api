@@ -11,7 +11,8 @@
   },
   "servers": [
     {
-      "url": "https://f2b.0xhw.com"
+      "url": "/",
+      "description": "The host serving this document"
     }
   ],
   "paths": {
@@ -25,21 +26,23 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/Health"
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid query"
+            "$ref": "#/components/responses/InvalidQuery"
           },
           "503": {
-            "description": "Temporary service or free-quota limit failure"
+            "$ref": "#/components/responses/Unavailable"
           },
           "429": {
-            "description": "Per-client edge rate limit; retry after 60 seconds"
+            "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "operationId": "getHealth",
+        "tags": ["Public API"]
       }
     },
     "/v1/lookup": {
@@ -52,7 +55,9 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "Public IPv4 or IPv6 address. Private and reserved addresses are rejected; IPv4-mapped IPv6 is normalized.",
+            "example": "1.1.1.1"
           }
         ],
         "responses": {
@@ -61,21 +66,23 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/Lookup"
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid query"
+            "$ref": "#/components/responses/InvalidQuery"
           },
           "503": {
-            "description": "Temporary service or free-quota limit failure"
+            "$ref": "#/components/responses/Unavailable"
           },
           "429": {
-            "description": "Per-client edge rate limit; retry after 60 seconds"
+            "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "operationId": "lookupIP",
+        "tags": ["Public API"]
       }
     },
     "/v1/ips": {
@@ -87,7 +94,10 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100
             }
           },
           {
@@ -95,15 +105,18 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "maxLength": 512
+            },
+            "description": "Opaque cursor from next_cursor or X-Next-Cursor. Keep the other filters unchanged."
           },
           {
             "name": "source",
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9_.-]{0,63}$"
             }
           },
           {
@@ -111,7 +124,8 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9_.-]{0,63}$"
             }
           },
           {
@@ -119,7 +133,8 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[A-Z]{2}$"
             }
           },
           {
@@ -127,7 +142,9 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4294967295
             }
           },
           {
@@ -135,8 +152,11 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "enum": ["true", "false", "all"],
+              "default": "true"
+            },
+            "description": "true: fresh active observations; false: inactive observations; all: full history including stale sources."
           }
         ],
         "responses": {
@@ -145,21 +165,23 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/ObservationPage"
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid query"
+            "$ref": "#/components/responses/InvalidQuery"
           },
           "503": {
-            "description": "Temporary service or free-quota limit failure"
+            "$ref": "#/components/responses/Unavailable"
           },
           "429": {
-            "description": "Per-client edge rate limit; retry after 60 seconds"
+            "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "operationId": "listObservations",
+        "tags": ["Public API"]
       }
     },
     "/v1/stats": {
@@ -172,21 +194,23 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/Stats"
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid query"
+            "$ref": "#/components/responses/InvalidQuery"
           },
           "503": {
-            "description": "Temporary service or free-quota limit failure"
+            "$ref": "#/components/responses/Unavailable"
           },
           "429": {
-            "description": "Per-client edge rate limit; retry after 60 seconds"
+            "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "operationId": "getStats",
+        "tags": ["Public API"]
       }
     },
     "/v1/sources": {
@@ -199,21 +223,23 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/SourceList"
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid query"
+            "$ref": "#/components/responses/InvalidQuery"
           },
           "503": {
-            "description": "Temporary service or free-quota limit failure"
+            "$ref": "#/components/responses/Unavailable"
           },
           "429": {
-            "description": "Per-client edge rate limit; retry after 60 seconds"
+            "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "operationId": "listSources",
+        "tags": ["Public API"]
       }
     },
     "/v1/feed.txt": {
@@ -225,7 +251,10 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5000,
+              "default": 1000
             }
           },
           {
@@ -233,8 +262,10 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "maxLength": 512
+            },
+            "description": "Opaque cursor from next_cursor or X-Next-Cursor. Keep the other filters unchanged."
           }
         ],
         "responses": {
@@ -243,157 +274,397 @@
             "content": {
               "text/plain": {
                 "schema": {
+                  "type": "string",
+                  "description": "Canonical IP addresses, one per line, with a trailing newline unless empty."
+                }
+              }
+            },
+            "headers": {
+              "X-Truncated": {
+                "description": "true if another page is available; otherwise false.",
+                "schema": {
+                  "type": "string",
+                  "enum": ["true", "false"]
+                }
+              },
+              "X-Next-Cursor": {
+                "description": "Only present when X-Truncated is true. Pass as the next cursor query parameter.",
+                "schema": {
                   "type": "string"
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid query"
+            "$ref": "#/components/responses/InvalidQuery"
           },
           "503": {
-            "description": "Temporary service or free-quota limit failure"
+            "$ref": "#/components/responses/Unavailable"
           },
           "429": {
-            "description": "Per-client edge rate limit; retry after 60 seconds"
-          }
-        }
-      }
-    },
-    "/v1/ingest/snapshot/{source}": {
-      "post": {
-        "summary": "Authenticated full jail snapshot or hash heartbeat",
-        "servers": [
-          {
-            "url": "https://f2b-ingest.0xhw.com"
-          }
-        ],
-        "security": [
-          {
-            "AccessClientID": [],
-            "AccessClientSecret": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "schema_version",
-                  "source",
-                  "jail",
-                  "observed_at",
-                  "currently_banned",
-                  "total_banned"
-                ],
-                "properties": {
-                  "schema_version": {
-                    "const": 1
-                  },
-                  "source": {
-                    "type": "string"
-                  },
-                  "jail": {
-                    "type": "string"
-                  },
-                  "observed_at": {
-                    "type": "string",
-                    "format": "date-time"
-                  },
-                  "currently_banned": {
-                    "type": "integer",
-                    "minimum": 0
-                  },
-                  "total_banned": {
-                    "type": "integer",
-                    "minimum": 0
-                  },
-                  "mode": {
-                    "enum": ["snapshot", "heartbeat"]
-                  },
-                  "snapshot_hash": {
-                    "type": "string",
-                    "pattern": "^[a-f0-9]{64}$"
-                  },
-                  "ips": {
-                    "type": "array",
-                    "maxItems": 10000,
-                    "items": {
-                      "type": "object",
-                      "required": ["ip"],
-                      "properties": {
-                        "ip": {
-                          "type": "string"
-                        },
-                        "country": {
-                          "type": ["string", "null"]
-                        },
-                        "asn": {
-                          "type": ["integer", "null"]
-                        },
-                        "organization": {
-                          "type": ["string", "null"]
-                        },
-                        "network": {
-                          "type": ["string", "null"]
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
+            "$ref": "#/components/responses/RateLimited"
           }
         },
-        "responses": {
-          "200": {
-            "description": "Snapshot committed or already applied"
-          },
-          "400": {
-            "description": "Invalid snapshot or address"
-          },
-          "403": {
-            "description": "Missing Access authentication or wrong source/jail scope"
-          },
-          "409": {
-            "description": "Stale, conflicting or missing full snapshot; retry full snapshot"
-          },
-          "413": {
-            "description": "Body exceeds 2 MiB"
-          },
-          "415": {
-            "description": "Expected application/json"
-          },
-          "503": {
-            "description": "Temporary service failure"
-          }
-        },
-        "parameters": [
-          {
-            "name": "source",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ]
+        "operationId": "getIPFeed",
+        "tags": ["Public API"]
       }
     }
   },
   "components": {
-    "securitySchemes": {
-      "AccessClientID": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "CF-Access-Client-Id"
+    "schemas": {
+      "Observation": {
+        "type": "object",
+        "required": [
+          "source",
+          "jail",
+          "ip",
+          "first_seen",
+          "last_seen",
+          "active",
+          "country",
+          "asn",
+          "organization",
+          "network",
+          "stale"
+        ],
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "jail": {
+            "type": "string"
+          },
+          "ip": {
+            "type": "string",
+            "description": "Canonical public IPv4 or IPv6 address."
+          },
+          "first_seen": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Unix timestamp in seconds (collection time, not an exact BAN event time)."
+          },
+          "last_seen": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Unix timestamp in seconds (collection time, not an exact BAN event time)."
+          },
+          "active": {
+            "type": "integer",
+            "enum": [0, 1],
+            "description": "1 when present in the latest snapshot; 0 when removed."
+          },
+          "country": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{2}$"
+          },
+          "asn": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "maximum": 4294967295
+          },
+          "organization": {
+            "type": ["string", "null"]
+          },
+          "network": {
+            "type": ["string", "null"]
+          },
+          "stale": {
+            "type": "integer",
+            "enum": [0, 1],
+            "description": "1 when the jail has not been collected within the freshness window (48 hours by default)."
+          }
+        },
+        "additionalProperties": false
       },
-      "AccessClientSecret": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "CF-Access-Client-Secret"
+      "Counts": {
+        "type": "object",
+        "required": ["observations", "ips"],
+        "properties": {
+          "observations": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "ips": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": false
+      },
+      "Error": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Health": {
+        "type": "object",
+        "required": [
+          "service",
+          "version",
+          "status",
+          "classification",
+          "html_reports"
+        ],
+        "properties": {
+          "service": {
+            "type": "string",
+            "const": "f2b-api"
+          },
+          "version": {
+            "type": "integer",
+            "const": 1
+          },
+          "status": {
+            "type": "string",
+            "const": "ok"
+          },
+          "classification": {
+            "type": "string"
+          },
+          "html_reports": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Lookup": {
+        "type": "object",
+        "required": ["ip", "observations", "truncated"],
+        "properties": {
+          "ip": {
+            "type": "string"
+          },
+          "observations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Observation"
+            },
+            "maxItems": 1000
+          },
+          "truncated": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ObservationPage": {
+        "type": "object",
+        "required": ["observations", "next_cursor"],
+        "properties": {
+          "observations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Observation"
+            },
+            "maxItems": 500
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque pagination cursor; retain the same filters on subsequent requests."
+          }
+        },
+        "additionalProperties": false
+      },
+      "SourceState": {
+        "type": "object",
+        "required": [
+          "source",
+          "jail",
+          "collected_at",
+          "currently_banned",
+          "total_banned",
+          "public_ip_count",
+          "stale"
+        ],
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "jail": {
+            "type": "string"
+          },
+          "collected_at": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Unix timestamp in seconds (collection time, not an exact BAN event time)."
+          },
+          "currently_banned": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "total_banned": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "public_ip_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "stale": {
+            "type": "integer",
+            "enum": [0, 1]
+          }
+        },
+        "additionalProperties": false
+      },
+      "SourceList": {
+        "type": "object",
+        "required": ["sources"],
+        "properties": {
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SourceState"
+            },
+            "maxItems": 1000
+          }
+        },
+        "additionalProperties": false
+      },
+      "Stats": {
+        "type": "object",
+        "required": ["active", "countries", "asns", "jails", "sources"],
+        "properties": {
+          "active": {
+            "$ref": "#/components/schemas/Counts"
+          },
+          "countries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["value", "observations", "ips"],
+              "properties": {
+                "value": {
+                  "type": ["string", "null"]
+                },
+                "observations": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "ips": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "additionalProperties": false
+            },
+            "maxItems": 100
+          },
+          "asns": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["value", "observations", "ips"],
+              "properties": {
+                "value": {
+                  "type": ["integer", "null"]
+                },
+                "observations": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "ips": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "additionalProperties": false
+            },
+            "maxItems": 100
+          },
+          "jails": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["value", "observations", "ips"],
+              "properties": {
+                "value": {
+                  "type": "string"
+                },
+                "observations": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "ips": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "additionalProperties": false
+            },
+            "maxItems": 100
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["value", "observations", "ips"],
+              "properties": {
+                "value": {
+                  "type": "string"
+                },
+                "observations": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "ips": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "additionalProperties": false
+            },
+            "maxItems": 100
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "responses": {
+      "InvalidQuery": {
+        "description": "Invalid query parameter.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "Per-client edge rate limit.",
+        "headers": {
+          "Retry-After": {
+            "description": "Seconds until retry.",
+            "schema": {
+              "type": "integer",
+              "example": 60
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Unavailable": {
+        "description": "Temporary service or free-quota limit failure.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
       }
     }
   }
