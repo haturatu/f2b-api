@@ -1,5 +1,5 @@
 PRAGMA foreign_keys = ON;
-CREATE TABLE jail_state (
+CREATE TABLE IF NOT EXISTS jail_state (
   source TEXT NOT NULL,
   jail TEXT NOT NULL,
   snapshot_hash TEXT NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE jail_state (
   write_token TEXT NOT NULL,
   PRIMARY KEY(source, jail)
 ) WITHOUT ROWID;
-CREATE TABLE ip_observations (
+CREATE TABLE IF NOT EXISTS ip_observations (
   source TEXT NOT NULL,
   jail TEXT NOT NULL,
   ip TEXT NOT NULL,
@@ -24,7 +24,7 @@ CREATE TABLE ip_observations (
   PRIMARY KEY(source, jail, ip),
   FOREIGN KEY(source, jail) REFERENCES jail_state(source, jail)
 ) WITHOUT ROWID;
-CREATE INDEX idx_ip_lookup ON ip_observations(ip, source, jail);
-CREATE INDEX idx_active_bans ON ip_observations(active, ip, source, jail);
-CREATE INDEX idx_country ON ip_observations(country, active, ip);
-CREATE INDEX idx_asn ON ip_observations(asn, active, ip);
+CREATE INDEX IF NOT EXISTS idx_ip_lookup ON ip_observations(ip, source, jail);
+CREATE INDEX IF NOT EXISTS idx_active_bans ON ip_observations(active, ip, source, jail);
+CREATE INDEX IF NOT EXISTS idx_country ON ip_observations(country, active, ip);
+CREATE INDEX IF NOT EXISTS idx_asn ON ip_observations(asn, active, ip);
