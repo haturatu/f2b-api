@@ -19,7 +19,7 @@ Fail2ban (FreeBSD / PF, Linux / nftables)
 
 The collection Worker and the public Worker are separate and share the same D1 database. The public API cannot submit data or operate any server's firewall.
 
-This site is available in Japanese and English. Requests to the root are directed to `/ja/` or `/en/` based on the saved preference, the browser language, and the connection country. Choosing a language from the navigation bar stores the preference in a cookie.
+This site is available in Japanese, English, Russian, Simplified Chinese, and Traditional Chinese. Requests to the root are directed to `/ja/`, `/en/`, `/ru/`, `/zh-cn/`, or `/zh-tw/` based on the saved preference, the browser language, and the connection country. Choosing a language from the navigation bar stores the preference in a cookie.
 
 We continue to generate the existing HTML reports. This site explains the API and the public policies, and links to the reports themselves.
 

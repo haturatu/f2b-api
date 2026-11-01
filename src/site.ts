@@ -9,21 +9,55 @@ interface Asset {
 }
 const assets = new Map<string, Asset>(Object.entries(generated));
 
-export type Language = "ja" | "en";
+export type Language = "ja" | "en" | "ru" | "zh-cn" | "zh-tw";
+
+export const LANGUAGES: Language[] = ["ja", "en", "ru", "zh-cn", "zh-tw"];
+
+const COUNTRY_LANGUAGES: Record<string, Language> = {
+  JP: "ja",
+  RU: "ru",
+  CN: "zh-cn",
+  TW: "zh-tw",
+  HK: "zh-tw",
+  MO: "zh-tw",
+};
+
+function languageTag(tag: string): Language | undefined {
+  const value = tag.trim().toLowerCase();
+  if (value === "ja" || value.startsWith("ja-")) return "ja";
+  if (value === "en" || value.startsWith("en-")) return "en";
+  if (value === "ru" || value.startsWith("ru-")) return "ru";
+  if (
+    value === "zh-tw" ||
+    value === "zh-hk" ||
+    value === "zh-mo" ||
+    value === "zh-hant" ||
+    value.startsWith("zh-hant-")
+  )
+    return "zh-tw";
+  if (
+    value === "zh" ||
+    value === "zh-cn" ||
+    value === "zh-sg" ||
+    value === "zh-hans" ||
+    value.startsWith("zh-hans-")
+  )
+    return "zh-cn";
+  return undefined;
+}
 
 export function preferredLanguage(request: Request): Language {
   const cookie = request.headers.get("Cookie") ?? "";
-  const saved = /(?:^|;\s*)lang=(ja|en)(?:;|$)/.exec(cookie);
+  const saved = /(?:^|;\s*)lang=(ja|en|ru|zh-cn|zh-tw)(?:;|$)/.exec(cookie);
   if (saved) return saved[1] as Language;
   const accept = request.headers.get("Accept-Language") ?? "";
   for (const entry of accept.split(",")) {
-    const tag = entry.split(";")[0].trim().toLowerCase();
-    if (tag === "ja" || tag.startsWith("ja-")) return "ja";
-    if (tag === "en" || tag.startsWith("en-")) return "en";
+    const language = languageTag(entry.split(";")[0]);
+    if (language) return language;
   }
   const country = (request as Request & { cf?: { country?: string } }).cf
     ?.country;
-  return country === "JP" ? "ja" : "en";
+  return (country && COUNTRY_LANGUAGES[country]) || "en";
 }
 
 function redirect(url: URL, pathname: string): Response {
@@ -62,11 +96,9 @@ export function siteResponse(request: Request): Response | undefined {
   const status = asset ? 200 : 404;
   if (!asset) {
     if (path.startsWith("/v1/") || path === "/v1") return undefined;
-    const language = path.startsWith("/en/")
-      ? "en"
-      : path.startsWith("/ja/")
-        ? "ja"
-        : preferredLanguage(request);
+    const language =
+      LANGUAGES.find((code) => path.startsWith(`/${code}/`)) ??
+      preferredLanguage(request);
     asset = assets.get(`/${language}/404.html`) ?? assets.get("/404.html");
   }
   if (!asset) return undefined;

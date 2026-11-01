@@ -22,7 +22,7 @@ describe("Hugo documentation site", () => {
     expect(ja.status).toBe(200);
     expect(ja.headers.get("Content-Type")).toContain("text/html");
     expect(await ja.text()).toContain(
-      "$ curl https://f2b.0xhw.com/v1/ips | jq",
+      "$ curl https://api.f2b.0xhw.com/v1/ips | jq",
     );
 
     const en = await get("/en/");
@@ -86,6 +86,36 @@ describe("Hugo documentation site", () => {
       },
     });
     expect(response.headers.get("Location")).toBe("https://example.com/ja/");
+
+    for (const [tag, location] of [
+      ["ru-RU,ru;q=0.9", "/ru/"],
+      ["zh-TW,zh;q=0.9", "/zh-tw/"],
+      ["zh-Hans,zh;q=0.8", "/zh-cn/"],
+      ["zh", "/zh-cn/"],
+    ] as const) {
+      response = await root({ headers: { "Accept-Language": tag } });
+      expect(response.headers.get("Location"), tag).toBe(
+        "https://example.com" + location,
+      );
+    }
+
+    for (const [country, location] of [
+      ["RU", "/ru/"],
+      ["CN", "/zh-cn/"],
+      ["TW", "/zh-tw/"],
+    ] as const) {
+      response = await api.fetch(
+        withCountry(new Request("https://example.com/"), country),
+        env,
+        ctx,
+      );
+      expect(response.headers.get("Location"), country).toBe(
+        "https://example.com" + location,
+      );
+    }
+
+    response = await root({ headers: { Cookie: "lang=zh-tw" } });
+    expect(response.headers.get("Location")).toBe("https://example.com/zh-tw/");
   });
 
   it("moves legacy document paths to the selected language", async () => {
@@ -159,6 +189,16 @@ describe("Hugo documentation site", () => {
     expect(english.status).toBe(404);
     expect(await english.text()).toContain("Back to home");
 
+    for (const [path, text] of [
+      ["/ru/missing/", "На главную"],
+      ["/zh-cn/missing/", "返回首页"],
+      ["/zh-tw/missing/", "返回首頁"],
+    ] as const) {
+      const response = await get(path);
+      expect(response.status, path).toBe(404);
+      expect(await response.text(), path).toContain(text);
+    }
+
     for (const path of ["/missing/", "/.env", "/__proto__"]) {
       const result = await get(path);
       expect(result.status).toBe(404);
@@ -181,5 +221,43 @@ describe("Hugo documentation site", () => {
     expect(html).toMatch(/hreflang=("?)en\1/);
     expect(html).toContain("hreflang=x-default");
     expect(html).toContain("https://f2b.0xhw.com/en/about/");
+  });
+
+  it("keeps the static site and the API on separate hostnames", async () => {
+    const production = Object.create(env) as Env;
+    production.API_HOST = "api.example.com";
+    production.SITE_HOST = "example.com";
+    const fetch = (url: string) => api.fetch(new Request(url), production, ctx);
+
+    for (const path of [
+      "/v1/ips?limit=1",
+      "/v1",
+      "/health",
+      "/docs",
+      "/openapi.json",
+    ]) {
+      const response = await fetch("https://example.com" + path);
+      expect(response.status, path).toBe(308);
+      expect(response.headers.get("Location"), path).toBe(
+        "https://api.example.com" + path,
+      );
+    }
+
+    for (const path of [
+      "/",
+      "/ja/",
+      "/policies/",
+      "/robots.txt",
+      "/missing/",
+    ]) {
+      const response = await fetch("https://api.example.com" + path);
+      expect(response.status, path).toBe(308);
+      expect(response.headers.get("Location"), path).toBe(
+        "https://example.com" + path,
+      );
+    }
+
+    expect((await fetch("https://example.com/ja/")).status).toBe(200);
+    expect((await fetch("https://api.example.com/health")).status).toBe(200);
   });
 });

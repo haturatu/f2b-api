@@ -48,7 +48,7 @@ disableKinds = ["taxonomy", "term", "RSS"]
       weight = 2
     [[languages.ja.menu.main]]
       name = "API リファレンス"
-      url = "/docs"
+      url = "https://api.f2b.0xhw.com/docs"
       weight = 3
     [[languages.ja.menu.main]]
       name = "GitHub"
@@ -93,7 +93,7 @@ disableKinds = ["taxonomy", "term", "RSS"]
       weight = 2
     [[languages.en.menu.main]]
       name = "API reference"
-      url = "/docs"
+      url = "https://api.f2b.0xhw.com/docs"
       weight = 3
     [[languages.en.menu.main]]
       name = "GitHub"
@@ -116,4 +116,139 @@ disableKinds = ["taxonomy", "term", "RSS"]
       name = "Theme"
       weight = 7
       [languages.en.menu.main.params]
+        type = "theme-toggle"
+
+  [languages.ru]
+    label = "Русский"
+    locale = "ru"
+    contentDir = "content/ru"
+    weight = 3
+    [languages.ru.params]
+      description = "Публичный API для поиска наблюдений Fail2ban. Политики блокировки, правила обнаружения и работа с данными."
+      [languages.ru.params.editURL]
+        enable = true
+        base = "https://github.com/haturatu/f2b-api/edit/master/site/content/ru"
+    [[languages.ru.menu.main]]
+      name = "Политики"
+      pageRef = "/policies"
+      weight = 1
+    [[languages.ru.menu.main]]
+      name = "Использование API"
+      pageRef = "/api"
+      weight = 2
+    [[languages.ru.menu.main]]
+      name = "Справочник API"
+      url = "https://api.f2b.0xhw.com/docs"
+      weight = 3
+    [[languages.ru.menu.main]]
+      name = "GitHub"
+      url = "https://github.com/haturatu/f2b-api"
+      weight = 4
+      [languages.ru.menu.main.params]
+        icon = "github"
+    [[languages.ru.menu.main]]
+      name = "Поиск"
+      weight = 5
+      [languages.ru.menu.main.params]
+        type = "search"
+    [[languages.ru.menu.main]]
+      name = "Язык"
+      weight = 6
+      [languages.ru.menu.main.params]
+        type = "language-switch"
+        label = true
+    [[languages.ru.menu.main]]
+      name = "Тема"
+      weight = 7
+      [languages.ru.menu.main.params]
+        type = "theme-toggle"
+
+  [languages.zh-cn]
+    label = "简体中文"
+    locale = "zh-CN"
+    contentDir = "content/zh-cn"
+    weight = 4
+    [languages.zh-cn.params]
+      description = "用于搜索 Fail2ban 观测数据的公开 API。说明阻断策略、检测规则和数据读取方式。"
+      [languages.zh-cn.params.editURL]
+        enable = true
+        base = "https://github.com/haturatu/f2b-api/edit/master/site/content/zh-cn"
+    [[languages.zh-cn.menu.main]]
+      name = "策略"
+      pageRef = "/policies"
+      weight = 1
+    [[languages.zh-cn.menu.main]]
+      name = "API 用法"
+      pageRef = "/api"
+      weight = 2
+    [[languages.zh-cn.menu.main]]
+      name = "API 参考"
+      url = "https://api.f2b.0xhw.com/docs"
+      weight = 3
+    [[languages.zh-cn.menu.main]]
+      name = "GitHub"
+      url = "https://github.com/haturatu/f2b-api"
+      weight = 4
+      [languages.zh-cn.menu.main.params]
+        icon = "github"
+    [[languages.zh-cn.menu.main]]
+      name = "搜索"
+      weight = 5
+      [languages.zh-cn.menu.main.params]
+        type = "search"
+    [[languages.zh-cn.menu.main]]
+      name = "语言"
+      weight = 6
+      [languages.zh-cn.menu.main.params]
+        type = "language-switch"
+        label = true
+    [[languages.zh-cn.menu.main]]
+      name = "主题"
+      weight = 7
+      [languages.zh-cn.menu.main.params]
+        type = "theme-toggle"
+
+  [languages.zh-tw]
+    label = "繁體中文"
+    locale = "zh-TW"
+    contentDir = "content/zh-tw"
+    weight = 5
+    [languages.zh-tw.params]
+      description = "用於搜尋 Fail2ban 觀測資料的公開 API。說明阻斷策略、偵測規則與資料讀取方式。"
+      [languages.zh-tw.params.editURL]
+        enable = true
+        base = "https://github.com/haturatu/f2b-api/edit/master/site/content/zh-tw"
+    [[languages.zh-tw.menu.main]]
+      name = "策略"
+      pageRef = "/policies"
+      weight = 1
+    [[languages.zh-tw.menu.main]]
+      name = "API 用法"
+      pageRef = "/api"
+      weight = 2
+    [[languages.zh-tw.menu.main]]
+      name = "API 參考"
+      url = "https://api.f2b.0xhw.com/docs"
+      weight = 3
+    [[languages.zh-tw.menu.main]]
+      name = "GitHub"
+      url = "https://github.com/haturatu/f2b-api"
+      weight = 4
+      [languages.zh-tw.menu.main.params]
+        icon = "github"
+    [[languages.zh-tw.menu.main]]
+      name = "搜尋"
+      weight = 5
+      [languages.zh-tw.menu.main.params]
+        type = "search"
+    [[languages.zh-tw.menu.main]]
+      name = "語言"
+      weight = 6
+      [languages.zh-tw.menu.main.params]
+        type = "language-switch"
+        label = true
+    [[languages.zh-tw.menu.main]]
+      name = "主題"
+      weight = 7
+      [languages.zh-tw.menu.main.params]
         type = "theme-toggle"
