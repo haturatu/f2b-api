@@ -24,7 +24,6 @@ Fail2ban（FreeBSD / PF、Linux / nftables）
 
 - [f2b-api](https://github.com/haturatu/f2b-api)：API、OpenAPI 仕様、この Hugo サイト。
 - [f2b-report](https://github.com/haturatu/f2b-report)：Fail2ban の状態解析、HTML・JSON の出力。
-- [既存 HTML レポート](https://soulminingrig.com/f2b-report/)：Jail ごとのレポート。
 
 Hugo の本文・テーマ設定は `f2b-api/site/`、サイトのビルドと Worker の配信処理は同じリポジトリで管理します。
 
