@@ -3,7 +3,7 @@ export interface Env {
   READ_LIMITER?: {
     limit(options: { key: string }): Promise<{ success: boolean }>;
   };
-  SOURCE_TOKENS?: string | Record<string, { source: string; jails: string[] }>;
+  SOURCE_SCOPES?: string | Record<string, { source: string; jails: string[] }>;
   STALE_SECONDS?: string;
 }
 export interface IPRecord {
@@ -25,13 +25,9 @@ export interface Snapshot {
   ips?: IPRecord[];
 }
 export interface AccessContext {
-  access?: {
-    getIdentity(): Promise<{
-      service_token_status?: boolean;
-      service_token_id?: string;
-    }>;
-  };
+  access?: { readonly aud: string };
 }
+
 export class HttpError extends Error {
   constructor(
     public status: number,

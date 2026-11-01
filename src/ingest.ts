@@ -111,7 +111,11 @@ export default {
     ctx: AccessContext,
   ): Promise<Response> {
     try {
-      if (new URL(request.url).pathname !== "/v1/ingest/snapshot")
+      if (
+        !/^\/v1\/ingest\/snapshot(?:\/[a-z0-9][a-z0-9_-]{0,63})?$/.test(
+          new URL(request.url).pathname,
+        )
+      )
         throw new HttpError(404, "Not found");
       if (request.method !== "POST")
         throw new HttpError(405, "Method not allowed");
@@ -120,20 +124,22 @@ export default {
           403,
           "Cloudflare Access service authentication required",
         );
-      const identity = await ctx.access.getIdentity();
-      if (!identity?.service_token_status || !identity.service_token_id)
-        throw new HttpError(403, "Service token required");
-      const tokens =
-        typeof env.SOURCE_TOKENS === "string"
-          ? (JSON.parse(env.SOURCE_TOKENS) as Record<
+      const scopes =
+        typeof env.SOURCE_SCOPES === "string"
+          ? (JSON.parse(env.SOURCE_SCOPES) as Record<
               string,
               { source: string; jails: string[] }
             >)
-          : (env.SOURCE_TOKENS ?? {});
-      const scope = tokens[identity.service_token_id];
-      if (!scope) throw new HttpError(403, "Unknown collection source");
+          : (env.SOURCE_SCOPES ?? {});
+      const scope = scopes[ctx.access.aud];
+      if (!scope) throw new HttpError(403, "Unknown Access application scope");
       const body = await readSnapshot(request);
-      if (body.source !== scope.source || !scope.jails.includes(body.jail))
+      if (
+        body.source !== scope.source ||
+        !scope.jails.includes(body.jail) ||
+        (new URL(request.url).pathname.split("/")[4] !== undefined &&
+          new URL(request.url).pathname.split("/")[4] !== scope.source)
+      )
         throw new HttpError(403, "Source or jail outside service-token scope");
       return await ingestSnapshot(body, env);
     } catch (error) {

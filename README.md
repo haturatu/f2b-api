@@ -42,9 +42,9 @@ flowchart LR
 
 ## 収集 API
 
-`POST /v1/ingest/snapshot` は収集ドメインだけで利用できます。Cloudflare Access の Service Auth ポリシーが認証し、Worker は `ctx.access.getIdentity()` の検証済みサービス ID と、設定上の収集元・Jail の範囲を照合します。ユーザー DB、ログイン画面、パスワード保存、JWT 発行基盤は持ちません。
+`POST /v1/ingest/snapshot/{source}` は収集ドメインの割り当てられたパスだけで利用できます。Cloudflare Access の Service Auth ポリシーが認証し、Worker は `ctx.access.aud` の検証済み Access アプリケーション AUD と、設定上の収集元・Jail の範囲を照合します。ユーザー DB、ログイン画面、パスワード保存、JWT 発行基盤は持ちません。
 
-認証ヘッダーは `CF-Access-Client-Id` と `CF-Access-Client-Secret` です。収集元ごとに独立した Service Token を発行します。`workers.dev` とプレビュー URL は両 Worker で無効です。Access コンテキストがない呼び出しも Worker 側で拒否します。
+認証ヘッダーは `CF-Access-Client-Id` と `CF-Access-Client-Secret` です。収集元ごとに独立した Service Token と Access アプリケーションを作成し、専用のパスでその Token だけを許可します。一般ユーザー向け identity の取得や JWT の解析を行いません。`workers.dev` とプレビュー URL は両 Worker で無効です。Access コンテキストがない呼び出しも Worker 側で拒否します。
 
 入力は [OpenAPI 仕様](openapi.json)を参照してください。最大サイズは 2 MiB、IP は最大 10,000 件です。プライベート・予約アドレスを拒否し、IPv4-mapped IPv6 と IPv6 表記を正規化します。組織名などのメタデータとクエリーも検証し、SQL はバインド変数を使用します。
 

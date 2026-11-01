@@ -260,7 +260,7 @@
         }
       }
     },
-    "/v1/ingest/snapshot": {
+    "/v1/ingest/snapshot/{source}": {
       "post": {
         "summary": "Authenticated full jail snapshot or hash heartbeat",
         "servers": [
@@ -369,7 +369,17 @@
           "503": {
             "description": "Temporary service failure"
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "source",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
       }
     }
   },

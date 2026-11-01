@@ -7,14 +7,7 @@ import { normalizeIP } from "../src/validation";
 import type { Env, Snapshot } from "../src/types";
 let mf: Miniflare, env: Env;
 const context = { waitUntil: () => {} } as ExecutionContext;
-const auth = {
-  access: {
-    getIdentity: async () => ({
-      service_token_status: true,
-      service_token_id: "test-client",
-    }),
-  },
-};
+const auth = { access: { aud: "test-app-audience" } };
 const now = () => Math.floor(Date.now() / 1000) - 100;
 function snapshot(ips = ["1.1.1.1"], time = now()): Snapshot {
   return {
@@ -54,8 +47,8 @@ beforeAll(async () => {
   );
   env = {
     DB: (await mf.getD1Database("DB")) as unknown as D1Database,
-    SOURCE_TOKENS: JSON.stringify({
-      "test-client": { source: "test", jails: ["sshd", "nginx"] },
+    SOURCE_SCOPES: JSON.stringify({
+      "test-app-audience": { source: "test", jails: ["sshd", "nginx"] },
     }),
   };
   await env.DB.exec(
@@ -77,6 +70,21 @@ beforeEach(async () => {
   ]);
 });
 describe("validation and Access", () => {
+  it("rejects unknown verified audiences and mismatched source paths", async () => {
+    expect(
+      (
+        await ingest.fetch(request(snapshot()), env, {
+          access: { aud: "other-app" },
+        })
+      ).status,
+    ).toBe(403);
+    const r = request(snapshot());
+    const other = new Request(
+      "https://ingest.example.com/v1/ingest/snapshot/other",
+      r,
+    );
+    expect((await ingest.fetch(other, env, auth)).status).toBe(403);
+  });
   it("rejects special IPv4 ranges and ambiguous spellings while preserving public boundaries", () => {
     for (const ip of [
       "192.175.48.1",
@@ -100,7 +108,9 @@ describe("validation and Access", () => {
   it("accepts Cloudflare JSON bindings for source scope", async () => {
     const runtime = {
       ...env,
-      SOURCE_TOKENS: { "test-client": { source: "test", jails: ["sshd"] } },
+      SOURCE_SCOPES: {
+        "test-app-audience": { source: "test", jails: ["sshd"] },
+      },
     };
     expect(
       (await ingest.fetch(request(snapshot()), runtime, auth)).status,
@@ -108,7 +118,7 @@ describe("validation and Access", () => {
   });
   it("rejects unauthenticated calls and spoofed headers", async () => {
     const r = request(snapshot());
-    r.headers.set("CF-Access-Client-Id", "test-client");
+    r.headers.set("CF-Access-Client-Id", "test-app-audience");
     expect((await ingest.fetch(r, env, {})).status).toBe(403);
   });
   it("enforces source and jail scope from verified identity", async () => {
