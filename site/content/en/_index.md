@@ -22,12 +22,6 @@ An IP record means that the address matched a blocking rule on one of the collec
 - [Currently active IPs](/v1/ips)
 - [Existing HTML reports](https://soulminingrig.com/f2b-report/)
 
-```sh
-curl 'https://f2b.0xhw.com/v1/lookup?ip=1.1.1.1'
-```
-
-This is a lookup example. It does not mean that the example IP has been observed.
-
 ## What is published
 
 We publish the public label of each collection source, jail names, observed IP addresses, first and last confirmation times, and enrichment such as country, ASN, and organization. This site explains the policies behind those observations and the limitations of the judgment.
