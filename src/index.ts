@@ -7,6 +7,7 @@ import {
   response,
 } from "./types";
 import { normalizeIP } from "./validation";
+import { docsPage, openapiDocument } from "./docs";
 const JOIN =
   "FROM ip_observations o JOIN jail_state s ON s.source=o.source AND s.jail=o.jail";
 const FIELDS =
@@ -49,6 +50,8 @@ function decodeCursor(value: string, size: number): string[] {
   }
 }
 async function route(url: URL, env: Env): Promise<Response> {
+  if (url.pathname === "/docs" || url.pathname === "/docs/") return docsPage();
+  if (url.pathname === "/openapi.json") return openapiDocument();
   const fresh = cutoff(env);
   if (url.pathname === "/" || url.pathname === "/health")
     return response({
@@ -213,10 +216,14 @@ export default {
       if (!result) {
         result = await route(url, env);
         if (result.ok) {
-          result.headers.set(
-            "Cache-Control",
-            `public, max-age=${url.pathname === "/v1/stats" ? 900 : url.pathname === "/v1/feed.txt" ? 300 : 60}`,
-          );
+          if (
+            !result.headers.has("Cache-Control") ||
+            result.headers.get("Cache-Control") === "no-store"
+          )
+            result.headers.set(
+              "Cache-Control",
+              `public, max-age=${url.pathname === "/v1/stats" ? 900 : url.pathname === "/v1/feed.txt" ? 300 : 60}`,
+            );
           if (cache) ctx.waitUntil(cache.put(cacheKey, result.clone()));
         }
       }

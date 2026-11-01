@@ -23,6 +23,10 @@ flowchart LR
 
 ## 公開 API
 
+[API ドキュメント](https://f2b.0xhw.com/docs)は Swagger UI で表示し、公開 GET API をブラウザーから実行できます。[OpenAPI JSON](https://f2b.0xhw.com/openapi.json)は同じ Worker から配信します。サーバー URL は相対パスのため、ドキュメントを開いたホストにリクエストします。
+
+Swagger UI の CSS と JavaScript は、バージョンを固定して jsDelivr から読み込み、SRI で整合性を検証します。CDN を利用できない場合も OpenAPI JSON を直接取得できます。画面と仕様のキャッシュ期間は 1 時間です。
+
 | メソッド・パス | 用途 |
 | --- | --- |
 | `GET /health` | サービス情報 |
@@ -46,7 +50,7 @@ flowchart LR
 
 認証ヘッダーは `CF-Access-Client-Id` と `CF-Access-Client-Secret` です。収集元ごとに独立した Service Token と Access アプリケーションを作成し、専用のパスでその Token だけを許可します。一般ユーザー向け identity の取得や JWT の解析を行いません。`workers.dev` とプレビュー URL は両 Worker で無効です。Access コンテキストがない呼び出しも Worker 側で拒否します。
 
-入力は [OpenAPI 仕様](openapi.json)を参照してください。最大サイズは 2 MiB、IP は最大 10,000 件です。プライベート・予約アドレスを拒否し、IPv4-mapped IPv6 と IPv6 表記を正規化します。組織名などのメタデータとクエリーも検証し、SQL はバインド変数を使用します。
+入力は [収集 API の OpenAPI 仕様](openapi-ingest.json)を参照してください。最大サイズは 2 MiB、IP は最大 10,000 件です。プライベート・予約アドレスを拒否し、IPv4-mapped IPv6 と IPv6 表記を正規化します。組織名などのメタデータとクエリーも検証し、SQL はバインド変数を使用します。
 
 IP とメタデータの一覧が同じなら、収集元は直前に受け取った `snapshot_hash` の heartbeat だけを送信できます。変更時には完全なスナップショットを送信します。D1 は追加、解除、再検出、メタデータ変更だけを観測テーブルへ反映し、変化のない観測行は書き直しません。heartbeat は Jail の収集状態だけを更新します。
 

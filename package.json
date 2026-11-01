@@ -10,8 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "dev": "wrangler dev --config wrangler.jsonc",
-    "format": "prettier --write src test scripts openapi.json",
-    "format:check": "prettier --check src test scripts openapi.json"
+    "format": "prettier --write src test scripts openapi*.json",
+    "format:check": "prettier --check src test scripts openapi*.json"
   },
   "dependencies": {
     "ipaddr.js": "^2.5.0"
