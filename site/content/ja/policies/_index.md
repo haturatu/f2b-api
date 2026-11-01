@@ -28,8 +28,8 @@ bantime.increment = false
 
 遮断範囲は HTTP/HTTPS の TCP・UDP、80 番・443 番ポートです。`freebsd` は PF、`oci` は nftables で適用します。検知とファイアウォールへの反映は各収集元の Fail2ban が実行し、この公開 API は遮断命令を配信しません。
 
-- [スキャナー対策の 9 ルール](/policies/scanners/)
-- [サービス別の検知回数と BAN 期間](/policies/services/)
+- [スキャナー対策の 9 ルール]({{< relref "/policies/scanners.md" >}})
+- [サービス別の検知回数と BAN 期間]({{< relref "/policies/services.md" >}})
 
 ## 運用環境に依存する判定
 

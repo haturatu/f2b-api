@@ -25,7 +25,7 @@ curl 'https://f2b.0xhw.com/v1/lookup?ip=1.1.1.1'
 
 この IP は呼び出しの例です。観測がない場合も正常に応答し、`observations` が空の配列になります。プライベート・予約アドレスや不正な値には 400 を返します。
 
-`first_seen` と `last_seen` は Unix 秒です。`active` と `stale` は 0 または 1 で返します。意味は[データの読み方](/data/)を参照してください。
+`first_seen` と `last_seen` は Unix 秒です。`active` と `stale` は 0 または 1 で返します。意味は[データの読み方]({{< relref "/data/_index.md" >}})を参照してください。
 
 ## 一覧とページング
 

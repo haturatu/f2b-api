@@ -1,11 +1,21 @@
 {{ define "main" }}
 <main id="content" class="hextra-max-page-width hx:mx-auto hx:px-6 hx:py-16">
+  {{- if eq site.Language.Lang "ja" }}
   <h1 class="hx:text-3xl hx:font-bold">ページが見つかりません</h1>
   <p class="hx:my-6">URLを確認するか、以下のページからお探しください。</p>
   <ul class="hx:flex hx:flex-col hx:gap-6">
-    <li><a href="/">ホームへ戻る</a></li>
-    <li><a href="/policies/">遮断ポリシー</a></li>
+    <li><a href="{{ "" | relLangURL }}">ホームへ戻る</a></li>
+    <li><a href="{{ "policies/" | relLangURL }}">遮断ポリシー</a></li>
     <li><a href="/docs">APIリファレンス</a></li>
   </ul>
+  {{- else }}
+  <h1 class="hx:text-3xl hx:font-bold">Page not found</h1>
+  <p class="hx:my-6">Check the URL, or start from one of the pages below.</p>
+  <ul class="hx:flex hx:flex-col hx:gap-6">
+    <li><a href="{{ "" | relLangURL }}">Back to home</a></li>
+    <li><a href="{{ "policies/" | relLangURL }}">Blocking policies</a></li>
+    <li><a href="/docs">API reference</a></li>
+  </ul>
+  {{- end }}
 </main>
 {{ end }}

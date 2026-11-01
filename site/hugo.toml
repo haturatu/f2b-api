@@ -1,7 +1,7 @@
 baseURL = "https://f2b.0xhw.com/"
 title = "f2b-api"
-locale = "ja"
 defaultContentLanguage = "ja"
+defaultContentLanguageInSubdir = true
 enableRobotsTXT = true
 disableKinds = ["taxonomy", "term", "RSS"]
 
@@ -10,7 +10,6 @@ disableKinds = ["taxonomy", "term", "RSS"]
     path = "github.com/imfing/hextra"
 
 [params]
-  description = "Fail2ban の観測データを検索する公開 API。遮断ポリシー、検知条件、データの読み方を説明します。"
   displayUpdatedDate = false
   [params.navbar]
     displayTitle = true
@@ -18,9 +17,6 @@ disableKinds = ["taxonomy", "term", "RSS"]
   [params.theme]
     default = "system"
     displayToggle = true
-  [params.editURL]
-    enable = true
-    base = "https://github.com/haturatu/f2b-api/edit/master/site/content"
   [params.page]
     width = "wide"
     displayPagination = true
@@ -31,31 +27,93 @@ disableKinds = ["taxonomy", "term", "RSS"]
 [markup.goldmark.renderer]
   unsafe = true
 
-[[menu.main]]
-  name = "ポリシー"
-  pageRef = "/policies"
-  weight = 1
-[[menu.main]]
-  name = "API の使い方"
-  pageRef = "/api"
-  weight = 2
-[[menu.main]]
-  name = "API リファレンス"
-  url = "/docs"
-  weight = 3
-[[menu.main]]
-  name = "GitHub"
-  url = "https://github.com/haturatu/f2b-api"
-  weight = 4
-  [menu.main.params]
-    icon = "github"
-[[menu.main]]
-  name = "検索"
-  weight = 5
-  [menu.main.params]
-    type = "search"
-[[menu.main]]
-  name = "テーマ"
-  weight = 6
-  [menu.main.params]
-    type = "theme-toggle"
+[languages]
+  [languages.ja]
+    label = "日本語"
+    locale = "ja"
+    contentDir = "content/ja"
+    weight = 1
+    [languages.ja.params]
+      description = "Fail2ban の観測データを検索する公開 API。遮断ポリシー、検知条件、データの読み方を説明します。"
+      [languages.ja.params.editURL]
+        enable = true
+        base = "https://github.com/haturatu/f2b-api/edit/master/site/content/ja"
+    [[languages.ja.menu.main]]
+      name = "ポリシー"
+      pageRef = "/policies"
+      weight = 1
+    [[languages.ja.menu.main]]
+      name = "API の使い方"
+      pageRef = "/api"
+      weight = 2
+    [[languages.ja.menu.main]]
+      name = "API リファレンス"
+      url = "/docs"
+      weight = 3
+    [[languages.ja.menu.main]]
+      name = "GitHub"
+      url = "https://github.com/haturatu/f2b-api"
+      weight = 4
+      [languages.ja.menu.main.params]
+        icon = "github"
+    [[languages.ja.menu.main]]
+      name = "検索"
+      weight = 5
+      [languages.ja.menu.main.params]
+        type = "search"
+    [[languages.ja.menu.main]]
+      name = "言語"
+      weight = 6
+      [languages.ja.menu.main.params]
+        type = "language-switch"
+        label = true
+    [[languages.ja.menu.main]]
+      name = "テーマ"
+      weight = 7
+      [languages.ja.menu.main.params]
+        type = "theme-toggle"
+
+  [languages.en]
+    label = "English"
+    locale = "en"
+    contentDir = "content/en"
+    weight = 2
+    [languages.en.params]
+      description = "A public API for searching Fail2ban observations. Blocking policies, detection rules, and how to read the data."
+      [languages.en.params.editURL]
+        enable = true
+        base = "https://github.com/haturatu/f2b-api/edit/master/site/content/en"
+    [[languages.en.menu.main]]
+      name = "Policies"
+      pageRef = "/policies"
+      weight = 1
+    [[languages.en.menu.main]]
+      name = "Using the API"
+      pageRef = "/api"
+      weight = 2
+    [[languages.en.menu.main]]
+      name = "API reference"
+      url = "/docs"
+      weight = 3
+    [[languages.en.menu.main]]
+      name = "GitHub"
+      url = "https://github.com/haturatu/f2b-api"
+      weight = 4
+      [languages.en.menu.main.params]
+        icon = "github"
+    [[languages.en.menu.main]]
+      name = "Search"
+      weight = 5
+      [languages.en.menu.main.params]
+        type = "search"
+    [[languages.en.menu.main]]
+      name = "Language"
+      weight = 6
+      [languages.en.menu.main.params]
+        type = "language-switch"
+        label = true
+    [[languages.en.menu.main]]
+      name = "Theme"
+      weight = 7
+      [languages.en.menu.main.params]
+        type = "theme-toggle"

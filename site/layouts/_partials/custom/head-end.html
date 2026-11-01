@@ -1,0 +1,20 @@
+{{- if hugo.IsMultilingual }}
+  {{- range .AllTranslations }}
+  <link rel="alternate" hreflang="{{ .Language.Locale | default .Language.Lang }}" href="{{ .Permalink }}" />
+  {{- end }}
+  <link rel="alternate" hreflang="x-default" href="{{ absURL "/" }}" />
+{{- end }}
+<script>
+  document.addEventListener(
+    "click",
+    function (event) {
+      var link = event.target.closest(".hextra-language-options a");
+      if (!link) return;
+      var match = (link.getAttribute("href") || "").match(/^\/(ja|en)(?:\/|$)/);
+      if (match)
+        document.cookie =
+          "lang=" + match[1] + "; path=/; max-age=31536000; samesite=lax";
+    },
+    true,
+  );
+</script>
