@@ -8,6 +8,7 @@
 @media (max-width: 767px) {
   button, input, select { min-height: 44px; }
   nav a { min-height: 44px; }
+  h1.hextra-home-title { font-size: 1.125rem; line-height: 1.5; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
