@@ -30,10 +30,12 @@ curl 'https://f2b.0xhw.com/v1/lookup?ip=1.1.1.1'
 ## 一覧とページング
 
 ```sh
-curl 'https://f2b.0xhw.com/v1/ips?source=freebsd&jail=sshd&limit=100'
+curl 'https://f2b.0xhw.com/v1/ips?source=oci&jail=sshd&limit=100'
+curl 'https://f2b.0xhw.com/v1/ips?country=CN&limit=100'
+curl 'https://f2b.0xhw.com/v1/ips?asn=3462&limit=100'
 ```
 
-`source`、`jail`、`country`、`asn`、`active` で絞り込めます。`country` は大文字 2 文字の国コードです。
+`source`、`jail`、`country`、`asn`、`active` で絞り込めます。`source` と `jail` に指定できる値は [/v1/sources](https://f2b.0xhw.com/v1/sources) で確認できます。`country` は大文字 2 文字の国コードです。
 
 | active | 対象 |
 | --- | --- |
