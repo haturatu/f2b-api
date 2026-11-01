@@ -4,9 +4,11 @@ description: "由多個收集來源記錄的公開封鎖觀測資料，以及其
 toc: false
 ---
 
-**f2b-api** 是一套公開 API，彙整 Fail2ban 所記錄的 IP 位址。它提供 IPv4 與 IPv6 查詢、各 Jail 的觀測資料、國家與 ASN 統計，以及去重後的 IP feed。
+**f2b-api** 是一套公開 API，用來查詢多台伺服器上 Fail2ban 曾記錄的 IP 位址。
 
-一筆 IP 紀錄代表該位址在某個收集來源上符合了封鎖規則。**這並不證明惡意活動或系統已遭入侵。** 使用這些資料時，請將共用 IP、動態配發，以及因設定而產生的誤判納入考量。
+先前已經透過 HTML 報告公開 Fail2ban 的統計資訊，但想搜尋某個 IP，或比較它在哪些 Jail 被記錄，翻找報告並不方便。所以另外做了這套 API，提供 IPv4/IPv6 查詢、條件篩選、國家與 ASN 統計，以及去重後的 IP 文字清單。
+
+有一點需要特別說明：**出現在資料庫中的 IP 不一定屬於攻擊者**。紀錄只表示某個收集來源的日誌符合 Fail2ban 設定的篩選條件。CGNAT 共用 IPv4、動態位址重新分配及誤判，都代表不能僅憑一筆紀錄判斷使用者身分或惡意行為。
 
 {{< cards >}}
   {{< card link="policies/" title="封鎖政策" icon="shield-check" subtitle="認證失敗、重複偵測，以及單次符合即永久封鎖的條件。" >}}
@@ -16,6 +18,13 @@ toc: false
 
 ## 快速開始
 
+可以直接透過[互動式 API 參考](https://api.f2b.0xhw.com/docs)執行 GET 請求，也可以使用 curl：
+
+```sh
+curl 'https://api.f2b.0xhw.com/v1/stats' | jq
+curl 'https://api.f2b.0xhw.com/v1/ips?limit=10' | jq
+```
+
 - [API 參考與瀏覽器內呼叫](https://api.f2b.0xhw.com/docs)
 - [OpenAPI 3.1 規格](https://api.f2b.0xhw.com/openapi.json)
 - [目前統計](https://api.f2b.0xhw.com/v1/stats)
@@ -24,6 +33,6 @@ toc: false
 
 ## 公開內容
 
-我們公開每個收集來源的公開標籤、Jail 名稱、觀測到的 IP 位址、首次與最後確認時間，以及國家、ASN、組織等補充資料。本網站說明這些觀測背後的各項政策，以及此判斷的限制。
+公開內容包括收集來源標籤、Jail 名稱、IP、首次與最後觀測時間、目前封鎖狀態，以及國家、ASN、組織等網路資訊。**原始存取日誌、帳號名稱、憑證及管理用排除清單不會公開。**
 
-公開讀取 API 不需驗證。整體架構請參閱[關於本服務]({{< relref "/about/_index.md" >}})。
+讀取 API 不需要驗證，但無法向收集端提交資料，也不能控制伺服器的防火牆。資料流程請參閱[關於本服務]({{< relref "/about/_index.md" >}})，欄位含義則在[解讀資料]({{< relref "/data/_index.md" >}})說明。

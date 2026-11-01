@@ -4,9 +4,11 @@ weight: 2
 description: "公開讀取 API 的查詢、篩選、排序、統計與文字 feed。"
 ---
 
-基礎 URL 為 `https://api.f2b.0xhw.com`。公開讀取 API 不需驗證，並支援 IPv4 與 IPv6。你可以在 [API 參考](https://api.f2b.0xhw.com/docs) 中直接執行 GET 請求。[OpenAPI JSON](https://api.f2b.0xhw.com/openapi.json) 也可取得。
+基礎 URL 是 `https://api.f2b.0xhw.com`。這裡提供的是**公開且唯讀的 GET API**，不用登入就能查詢 IPv4 與 IPv6 的觀測資料，但不能修改任何伺服器的封鎖清單。
 
-## 端點
+想在瀏覽器測試請求，可以使用[互動式 API 參考](https://api.f2b.0xhw.com/docs)；也提供 JSON 格式的 [OpenAPI 規格](https://api.f2b.0xhw.com/openapi.json)。
+
+## 可以查詢什麼
 
 | 路徑 | 用途 |
 | --- | --- |
@@ -17,7 +19,7 @@ description: "公開讀取 API 的查詢、篩選、排序、統計與文字 fee
 | `/v1/sources` | 收集來源與 Jail 更新狀態 |
 | `/v1/feed.txt` | 有效觀測資料的去重 IP 清單 |
 
-## 查詢 IP
+## 查詢單一 IP
 
 ```sh
 curl 'https://api.f2b.0xhw.com/v1/lookup?ip=1.1.1.1'
@@ -28,6 +30,8 @@ curl 'https://api.f2b.0xhw.com/v1/lookup?ip=1.1.1.1'
 `first_seen` 與 `last_seen` 為 Unix 秒數。`active` 與 `stale` 以 0 或 1 傳回。其意義請參閱[解讀資料]({{< relref "/data/_index.md" >}})。
 
 ## 篩選與分頁
+
+不需要每次都下載完整清單。可以依照國家、Jail、組織名稱或觀測時間縮小範圍：
 
 ```sh
 curl 'https://api.f2b.0xhw.com/v1/ips?country=JP&jail=sshd&sort=last_seen&order=desc&limit=100'
@@ -62,9 +66,11 @@ curl -i 'https://api.f2b.0xhw.com/v1/feed.txt?country=JP&limit=1000'
 
 feed 每行傳回一個 IP，並接受相同的篩選條件。預設依 IP 位址排序；游標會綁定篩選條件。上限預設為 1000，最多為 5000。當回應包含 `X-Truncated: true` 時，請將 `X-Next-Cursor` 作為下一次的 `cursor` 傳入以繼續取得。
 
+**不要把這份清單直接當成永久封鎖名單使用。** 這是 Fail2ban 的觀測結果，不是已經確認身分的攻擊者清單。應先查看[偵測規則]({{< relref "/policies/_index.md" >}})與觀測時間。
+
 ## 統計
 
-`/v1/stats` 接受相同的篩選條件。未指定 `group_by` 時，會傳回總計以及依國家、ASN、Jail、來源分組的計數。指定 `group_by` 時，則傳回單一排序後的彙總清單。
+如果只想看統計而非個別紀錄，可以使用 `/v1/stats`。它接受相同的篩選條件。未指定 `group_by` 時，會傳回總計以及依國家、ASN、Jail、來源分組的計數。指定 `group_by` 時，則傳回單一排序後的彙總清單。
 
 ```sh
 curl 'https://api.f2b.0xhw.com/v1/stats?country=JP&group_by=asn&sort=observations&order=desc&limit=20'
@@ -74,6 +80,6 @@ curl 'https://api.f2b.0xhw.com/v1/stats?country=JP&group_by=asn&sort=observation
 
 ## 快取與使用限制
 
-API 將每個用戶端 IP 限制為每分鐘約 120 次請求，超過限制時會傳回 429 與 `Retry-After`。此限制為每個網站的近似值。
+API 將每個用戶端 IP 限制為每分鐘約 120 次請求，超過限制時會傳回 429 與 `Retry-After`。這是各邊緣節點的近似限制，並非全球共用的精確計數器。
 
 統計資料快取 15 分鐘，feed 快取 5 分鐘，其他 API 快取 1 分鐘。因此收集後短時間內，結果可能略有差異。免費方案限制或暫時性故障也可能使 API 無法使用；發生錯誤時請間隔一段時間後重試。
