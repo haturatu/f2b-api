@@ -1,73 +1,106 @@
 ---
 title: "スキャナー対策"
 weight: 1
-description: "一度の一致で永久 BAN する 9 個の Jail と、単独では検知しないリクエスト。"
+description: "一度の一致で永久 BAN にする 9 つの Jail と、誤検知を避けるための除外条件。"
 ---
 
-このページでは、一度の一致で永久 BAN する 9 個の Jail と、単独では BAN の条件にしないリクエストを説明します。
+スキャナー対策の Jail には、**指定した特徴に 1 回一致すると永久 BAN する**ものがあります。
 
-次の 9 個の Jail は、[共通設定]({{< relref "/policies/_index.md" >}}#スキャナー対策の共通設定)に従い、一度の検知で永久 BAN します。特定のパスや User-Agent へのアクセスも、収集元の運用上の遮断基準として扱います。アクセスがあっただけで、その製品の脆弱性や攻撃の成功を示すものではありません。
+SSH の認証失敗を何回か数える方式とは違い、特定のファイルを探すアクセスや、スキャンツールの User-Agent などを対象にしています。
+
+ただし、ログに一致したからといって、実際に攻撃が成功したことまで分かるわけではありません。正当なリクエストと重なる条件もあるので、収集元の運用に合わせて除外しています。
+
+共通の `maxretry = 1`、`bantime = -1` などの設定は[遮断ポリシー]({{< relref "/policies/_index.md" >}}#スキャナー対策の共通設定)を参照してください。
 
 ## 機密ファイルと VCS
 
-`nginx-scanner-secrets` は、`.env`、`.git/config`、`.svn/entries`、クラウド認証ファイル、秘密鍵、履歴ファイル、設定のバックアップなどへの探索を対象にします。
+`nginx-scanner-secrets` は、公開されていると困るファイルを探すリクエストを対象にします。
 
-このフィルターは `/.well-known/acme-challenge/` を除外します。通常の公開ファイルの存在確認とは区別します。
+例えば `.env`、`.git/config`、`.svn/entries`、クラウドの認証情報、秘密鍵、履歴ファイル、設定のバックアップなどです。
+
+`/.well-known/acme-challenge/` は証明書の取得・更新に使うので、この条件から除外しています。通常の公開ファイルの存在確認と、こうしたファイルの探索は分けて扱っています。
 
 ## HTTP メソッド
 
-`nginx-scanner-method` は、TRACE、CONNECT、指定した WebDAV・拡張メソッド、PRI、指定した壊れた・小文字のメソッドを対象にします。例として PROPFIND、MKCOL、LOCK、`GETT`、`get` などが含まれます。
+`nginx-scanner-method` は、TRACE、CONNECT、指定した WebDAV・拡張メソッド、PRI、壊れたメソッド名や小文字のメソッドを対象にします。
 
-通常の OPTIONS は CORS プリフライトに使われるため、このメソッド判定には含めません。このフィルターは `/dav`、`/webdav`、`/remote.php` 配下を除外します。
+例えば PROPFIND、MKCOL、LOCK、`GETT`、`get` などです。
+
+ただし、OPTIONS は CORS のプリフライトに普通に使われるため対象にしていません。また、WebDAV を正当に使うサービスもあるので、`/dav`、`/webdav`、`/remote.php` 配下は除外しています。
 
 ## パストラバーサル
 
-`nginx-scanner-traversal` は、`../` と指定したエンコード表現、システムのパスワードファイル、プロセス環境情報、Windows の設定ファイル、ヌル文字の探索シグネチャなどを対象にします。
+`nginx-scanner-traversal` は、`../` とそのエンコード表現など、ファイルパスをたどろうとする特徴を検知します。
 
-通常の検索文字列に見える場合でも、URI 全体に指定シグネチャが含まれれば一致する条件があります。
+システムのパスワードファイル、プロセスの環境情報、Windows の設定ファイル、ヌル文字なども対象です。
+
+URI 全体を見る条件もあるので、正常な検索文字列の一部に同じパターンが入れば一致する可能性があります。
 
 ## JNDI
 
-`nginx-scanner-jndi` は、URI に含まれる `${jndi:` と指定したパーセントエンコード表現を対象にします。User-Agent や任意のヘッダー全体を網羅するルールではありません。
+`nginx-scanner-jndi` は URI 内の `${jndi:` と、指定したパーセントエンコード表現を検知します。
+
+ログに残るすべての HTTP ヘッダーを調べているわけではありません。例えば User-Agent に含まれるあらゆる JNDI 表現を網羅するルールではなく、**対象は URI に限定**しています。
 
 ## SQL インジェクションのシグネチャ
 
-`nginx-scanner-sqli` は、クエリー文字列がある URI を対象にします。`UNION SELECT`、`information_schema`、`sleep(...)`、`benchmark(...)`、ファイル入出力を狙う指定表現、指定した恒真条件などを検知します。
+`nginx-scanner-sqli` は、クエリー文字列が付いた URI から SQL インジェクションによく見られる表現を検知します。
 
-指定した区切りやパーセントエンコードを考慮します。SQL インジェクション全般を検知するものでも、アプリケーションの入力検証を代替するものでもありません。
+`UNION SELECT`、`information_schema`、`sleep(...)`、`benchmark(...)`、ファイルの読み書きを狙う表現、恒真条件などを対象にしています。区切り文字や一部のパーセントエンコードも考慮しています。
+
+もちろん、SQL インジェクションをすべて検知できるわけではありません。アプリケーション側の入力検証やパラメーター化した SQL の代わりにもなりません。
 
 ## 製品・機器固有の探索パス
 
-`nginx-scanner-cve` は、PHPUnit、Ignition、Actuator、Solr、VPN 装置、メール製品、管理コンソール、CGI、WordPress、診断用ページなどの指定パスへのアクセスを対象にします。
+`nginx-scanner-cve` は、PHPUnit、Ignition、Actuator、Solr、VPN 装置、メール製品、管理コンソール、CGI、WordPress などの指定パスを対象にします。
 
-例として、PHPUnit の `eval-stdin.php`、`/_ignition/execute-solution`、`/actuator/env`、`/manager/html`、`/server-status`、`/xmlrpc.php` が含まれます。このフィルターは Actuator の `/health` と `/info` を除外します。
+例えば以下のようなものです。
 
-これらの機能を正当に公開しているサービスでは正常なアクセスもあり得るため、パスだけを一般的な悪意の根拠にはできません。
+- `/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php` に類する PHPUnit の `eval-stdin.php`
+- `/_ignition/execute-solution`
+- `/actuator/env`
+- `/manager/html`、`/server-status`、`/xmlrpc.php`
+
+Actuator の `/health` と `/info` は通常の監視にも使うため除外しています。
+
+特定の URL にアクセスしただけで、脆弱性を悪用した証拠になるわけではありません。対象製品を正当に公開している場合は誤検知の可能性があります。
 
 ## User-Agent
 
-`nginx-scanner-ua` は、nikto、sqlmap、Nmap Scripting Engine、masscan、zgrab、Nuclei、WPScan、gobuster、ffuf、Nessus など、指定したスキャナー名を User-Agent 内で検知します。語の境界を考慮して照合します。
+`nginx-scanner-ua` は、nikto、sqlmap、Nmap Scripting Engine、masscan、zgrab、Nuclei、WPScan、gobuster、ffuf、Nessus など、指定したスキャンツール名を User-Agent から検知します。
 
-一般的な HTTP クライアントである curl、wget、`python-urllib` や、空の User-Agent は、それだけではこの条件に一致しません。User-Agent は自己申告なので、ツールの利用者や悪意を確定する情報にはなりません。
+単に文字列がどこかに含まれるかだけではなく、語の境界も考慮しています。
+
+一方、curl、wget、`python-urllib`、空の User-Agent などは、それだけではこの Jail の検知条件になりません。
+
+そもそも User-Agent は自由に名乗れるものです。名前が一致しても、そのツールを使っている人が誰なのかまでは分かりません。
 
 ## バックドア名と応答コード
 
-`nginx-scanner-backdoor` は、`shell`、`cmd`、`upload`、`alfa` など指定したファイル名と、PHP・ASP・JSP・CGI などの指定拡張子の組み合わせを対象にし、応答が **200 または 403** の場合に一致します。
+`nginx-scanner-backdoor` は、`shell`、`cmd`、`upload`、`alfa` などの名前と、PHP・ASP・JSP・CGI などの拡張子の組み合わせを対象にします。
 
-PHP サイト以外を前提にしています。任意の `.php` への 404 を一律に BAN する条件ではありません。
+さらに、**応答が 200 または 403 の場合**に一致します。任意の `.php` への 404 を片っ端から BAN する条件ではありません。
+
+この Jail は PHP サイト以外を想定した設定なので、PHP を普通に公開している環境へそのまま持ち込むべきではありません。
 
 ## 認証パスの異常リクエスト
 
-`nginx-auth-garbage` は、`/login`、`/signin`、`/api/auth` など指定した認証パスに対する 400、405、411、413、414、415、422、431、501 を対象にします。指定した認証パスへの PUT、DELETE、PATCH、PROPFIND も別条件で対象にします。
+`nginx-auth-garbage` は、`/login`、`/signin`、`/api/auth` など指定した認証パスへの異常なリクエストを対象にします。
 
-通常の POST `/login` に対する 401 は、この Jail の対象にしません。列挙したエラー応答は正常なクライアントでも発生し得るため、これも収集元の運用上の基準です。
+応答コードでは 400、405、411、413、414、415、422、431、501 が対象です。また、同じ認証パスへの PUT、DELETE、PATCH、PROPFIND も別条件で検知します。
 
-## 単独では BAN 条件にしないもの
+ただし、通常の `POST /login` が 401 を返しただけでは、この Jail の対象にはなりません。エラー応答自体は正常なクライアントでも起こるので、あくまで運用上の基準です。
 
-- 通常の OPTIONS、HEAD、PATCH。
-- 通常の POST `/login` に対する 401。
-- curl、wget、`python-urllib`、一般的なブラウザーの User-Agent、空の User-Agent。
-- 通常の `.php` に対する 404。
-- `package.json` に対する 200。
+## 何でも BAN しているわけではない
 
-これはスキャナー対策における単独条件の説明です。同じリクエストが別のシグネチャに一致すれば、その Jail で検知されます。通常の HTTP リクエストでも、[既存の HTTP 回数判定]({{< relref "/policies/services.md" >}}#http)に一致する場合があります。
+誤検知しやすいものは、単独ではスキャナー扱いしないようにしています。
+
+- 通常の OPTIONS、HEAD、PATCH
+- 通常の `POST /login` に対する 401
+- curl、wget、`python-urllib`、ブラウザー、空の User-Agent
+- 通常の `.php` への 404
+- `package.json` に対する 200
+
+ただし、別のシグネチャにも一致した場合は、その Jail で BAN されることがあります。通常の HTTP アクセスであっても、[HTTP の回数判定]({{< relref "/policies/services.md" >}}#http)の条件に入る場合があります。
+
+ここで紹介した条件は、収集元で採用しているルールの説明です。**一般的なサイトすべてに対する推奨ルールではありません。**
