@@ -101,7 +101,7 @@ npm run dev
 | `CLOUDFLARE_ACCOUNT_ID` | 対象アカウント |
 | `F2B_DEPLOY_CONFIG` | Worker 名、D1 ID、Access の AUD と収集元の対応、Rate Limit 設定 |
 
-`F2B_DEPLOY_CONFIG` は、`cftf` の `deployment_config` 出力から作成します。`scripts/prepare-deploy.mjs` は実行時に `.deploy/` へ Wrangler 設定を生成し、`SOURCE_SCOPES` は Secret として収集 Worker にだけ配信します。
+`F2B_DEPLOY_CONFIG` は、`cftf` の `deployment_config` 出力から作成します。`scripts/prepare-deploy.mjs` は実行時に `.deploy/` へ Wrangler 設定を生成し、`SOURCE_SCOPES` は Secret として収集 Worker にだけ配信します。Access アプリケーションを作り直した場合は、出力を再取得して Secret を更新します。
 
 リポジトリ変数 `DEPLOY_ENABLED` が `true` のとき、master への push と手動実行でデプロイします。テストが失敗した場合や Pull Request では実行しません。D1 マイグレーションは Worker の配信前に適用します。
 
