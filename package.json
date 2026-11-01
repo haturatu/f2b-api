@@ -1,0 +1,28 @@
+{
+  "name": "f2b-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Public Fail2ban observations API and Access-protected ingestion on Cloudflare Workers and D1",
+  "license": "BSD-2-Clause",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "dev": "wrangler dev --config wrangler.jsonc",
+    "format": "prettier --write src test scripts openapi.json",
+    "format:check": "prettier --check src test scripts openapi.json"
+  },
+  "dependencies": {
+    "ipaddr.js": "^2.5.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261101.1",
+    "esbuild": "^0.28.2",
+    "miniflare": "5.20261023.3-beta",
+    "prettier": "^3.9.10",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5",
+    "wrangler": "^4.156.0"
+  }
+}
