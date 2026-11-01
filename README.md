@@ -1,6 +1,6 @@
 # f2b-api
 
-Fail2ban の収集結果を Cloudflare Workers と D1 に集約し、IPv4・IPv6 の検索、統計、IP フィードを提供します。既存の HTML レポートは [f2b-report](https://github.com/haturatu/f2b-report) と [f2b-output](https://github.com/haturatu/f2b-output) で継続します。
+Fail2ban の収集結果を Cloudflare Workers と D1 に集約し、IPv4・IPv6 の検索、統計、IP フィードを提供します。既存の HTML レポートは [f2b-report](https://github.com/haturatu/f2b-report) で継続します。
 
 記録は各収集元の Fail2ban による観測結果です。IP が記録されていることだけで悪意を断定するものではありません。
 
