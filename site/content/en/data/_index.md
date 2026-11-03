@@ -1,5 +1,7 @@
 ---
 title: "Reading the data"
+datasetName: "Fail2ban IP observation dataset"
+datasetDescription: "A periodically collected dataset of IPv4 and IPv6 addresses observed in Fail2ban ban lists across multiple sources. The public REST API exposes source, jail, observation times, ban state, country and ASN metadata. An observation does not prove malicious activity."
 weight: 3
 description: "Observation times, ban state, stale updates, and the meaning and limits of country and ASN data."
 ---
@@ -47,3 +49,14 @@ The public API provides IP addresses, public collection-source labels, jail name
 ## Reporting false positives or specification issues
 
 You can report interpretation questions or inconsistencies in the specification through the [f2b-api GitHub repository](https://github.com/haturatu/f2b-api). Do not publish credentials, raw logs, or personal information. When reviewing a correction, we separate the jail, the observation time, and the conditions of the issue.
+
+## Public dataset and access
+
+This page also describes the **Fail2ban IP observation dataset**. The records come from periodic snapshots of ban lists from multiple Fail2ban sources, not from verified attack-attribution events.
+
+- [Observations (JSON)](https://api.f2b.0xhw.com/v1/ips): source, jail, IP, timestamps, ban state and network metadata, returned in pages.
+- [Statistics (JSON)](https://api.f2b.0xhw.com/v1/stats): totals and breakdowns by country, ASN, jail and source.
+- [Active IP text feed](https://api.f2b.0xhw.com/v1/feed.txt): deduplicated IPs, with pagination for larger sets.
+- [OpenAPI specification](https://api.f2b.0xhw.com/openapi.json): endpoint contracts and parameters.
+
+The API is paginated; it is not a single-file download of all historical records. The software's BSD license does not automatically establish redistribution terms for the observation dataset. Confirm data-use terms separately.
