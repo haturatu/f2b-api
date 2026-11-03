@@ -272,6 +272,7 @@ export default {
         }
       }
       const headers = new Headers(result.headers);
+      if (API_PATH.test(url.pathname)) headers.set("X-Robots-Tag", "noindex");
       for (const [k, v] of Object.entries(cors)) headers.set(k, v);
       return new Response(request.method === "HEAD" ? null : result.body, {
         status: result.status,

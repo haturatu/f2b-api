@@ -20,6 +20,7 @@ export function docsPage(): Response {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, follow">
   <meta name="color-scheme" content="light">
   <title>f2b-api — APIドキュメント</title>
   <link rel="stylesheet" href="${cdn}/swagger-ui.css" integrity="sha384-Ov4/wv3j2bmct8cDc5X4ngJZohVPzEmc6uDPH8WeljUxO5vtoykvMEfbu9Vh6RaW" crossorigin="anonymous">
