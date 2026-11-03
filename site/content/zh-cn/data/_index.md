@@ -1,5 +1,7 @@
 ---
 title: "解读数据"
+datasetName: "Fail2ban IP 观测数据集"
+datasetDescription: "来自多个采集源的 Fail2ban 封禁列表定期快照所形成的 IPv4 与 IPv6 观测数据集。公开 REST API 提供采集源、jail、观测时间、封禁状态、国家和 ASN 信息。单条记录并不能证明某个 IP 的使用者具有恶意。"
 weight: 3
 description: "观测时间、封禁状态、陈旧的更新，以及国家与 ASN 数据的含义和局限。"
 ---
@@ -47,3 +49,14 @@ description: "观测时间、封禁状态、陈旧的更新，以及国家与 AS
 ## 报告误报或规范问题
 
 你可以通过 [f2b-api GitHub 仓库](https://github.com/haturatu/f2b-api) 报告解释上的疑问或规范中的不一致之处。请勿公开凭据、原始日志或个人信息。在审核更正时，我们会区分 jail、观测时间以及问题发生的条件。
+
+## 公开数据集和获取方式
+
+本页同时介绍 **Fail2ban IP 观测数据集**。记录来自多个采集源的定期封禁列表快照，并非经过证实的攻击归因事件。
+
+- [观测列表（JSON）](https://api.f2b.0xhw.com/v1/ips)：采集源、jail、IP、时间、封禁状态与网络信息，支持分页。
+- [统计（JSON）](https://api.f2b.0xhw.com/v1/stats)：总数及国家、ASN、jail、采集源分类。
+- [有效 IP 文本列表](https://api.f2b.0xhw.com/v1/feed.txt)：去重后的地址，超出上限时可以继续获取。
+- [OpenAPI 规范](https://api.f2b.0xhw.com/openapi.json)：请求参数和响应结构。
+
+API 采用分页方式提供数据，并不提供包含全部历史记录的单个下载文件。软件代码采用 BSD 许可证，但这不自动意味着观测数据适用相同的再分发条款，请另行确认数据使用条件。

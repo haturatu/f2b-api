@@ -120,6 +120,17 @@ Workers と D1 の無料枠での小規模運用を想定しています。課�
 - [Workers の Cloudflare Access](https://developers.cloudflare.com/workers/configuration/cloudflare-access/)
 - [D1 batch のトランザクション](https://developers.cloudflare.com/d1/worker-api/d1-database/)
 
+## 検索エンジン向けの公開
+
+Hugo は各言語の独立した URL、`robots.txt`、`sitemap.xml` を生成します。Hextra の canonical・OGP・Twitter Card に加え、このリポジトリは言語別 `hreflang` とドキュメントの構造化データを出力します。静的サイトは `https://f2b.0xhw.com`、JSON API は `https://api.f2b.0xhw.com` で公開し、API には `X-Robots-Tag: noindex` を設定します。
+
+公開後の確認事項:
+
+- Google Search Console と Bing Webmaster Tools で `f2b.0xhw.com` の所有権を確認し、`https://f2b.0xhw.com/sitemap.xml` を登録する。検索サービスへのログインや DNS 所有権確認はリポジトリのビルドでは実行しません。
+- [PageSpeed Insights](https://pagespeed.web.dev/) で各言語のトップページと技術ページを測定する。実測結果を見ずに Core Web Vitals の改善を断定しません。
+- Cloudflare WAF の Bot 例外はインフラ管理側 (`cftf`) で確認し、検証済み Bot の正常な HTML クロールを妨げないようにする。未検証の User-Agent を無条件に信頼しません。
+- 新しい言語ページを追加したら、相互リンクと実際の翻訳の対応を確認する。サイトマップの `lastmod` には実際の本文更新日だけを使用し、デプロイ日時を更新日として扱いません。
+
 ## ライセンス
 
 [BSD 2-Clause License](LICENSE)。Copyright (c) 2026, haturatu。

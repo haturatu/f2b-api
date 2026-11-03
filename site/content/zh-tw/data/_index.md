@@ -1,5 +1,7 @@
 ---
 title: "解讀資料"
+datasetName: "Fail2ban IP 觀測資料集"
+datasetDescription: "由多個收集來源的 Fail2ban 封鎖清單定期快照組成的 IPv4 與 IPv6 觀測資料集。公開 REST API 提供來源、Jail、觀測時間、封鎖狀態、國家與 ASN 等資訊。單筆紀錄並不能證明使用者具有惡意。"
 weight: 3
 description: "觀測時間、封鎖狀態、過期更新，以及國家與 ASN 資料的意義與限制。"
 ---
@@ -47,3 +49,14 @@ description: "觀測時間、封鎖狀態、過期更新，以及國家與 ASN �
 ## 回報誤判或規格問題
 
 你可以透過 [f2b-api GitHub 儲存庫](https://github.com/haturatu/f2b-api) 回報解讀疑問或規格不一致之處。請勿公開憑證、原始日誌或個人資訊。檢視修正時，我們會區分 Jail、觀測時間與問題條件。
+
+## 公開資料集與取得方式
+
+本頁同時說明 **Fail2ban IP 觀測資料集**。資料來自多個來源的定期封鎖清單快照，並非已驗證的攻擊歸因事件。
+
+- [觀測清單（JSON）](https://api.f2b.0xhw.com/v1/ips)：來源、Jail、IP、時間、封鎖狀態與網路資訊，可分頁讀取。
+- [統計（JSON）](https://api.f2b.0xhw.com/v1/stats)：總量與國家、ASN、Jail、來源分類。
+- [有效 IP 文字清單](https://api.f2b.0xhw.com/v1/feed.txt)：去除重複的位址，超出上限可繼續取得。
+- [OpenAPI 規格](https://api.f2b.0xhw.com/openapi.json)：請求參數與回應格式。
+
+API 以分頁方式提供資料，並未提供包含全部歷史紀錄的單一下載檔案。軟體程式碼的 BSD 授權不會自動決定觀測資料的再散布條款，資料使用條件需另行確認。

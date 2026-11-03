@@ -42,3 +42,5 @@ The same jail name therefore does not mean the same detection. Read API results 
 - `oci`: verifies that the resolved name ends with `googlebot.com` or `google.com`.
 
 The `oci` check does not verify that a forward DNS lookup resolves back to the original IP, so the two checks differ in strength. The ban duration is the existing very long finite value and is not the permanent `bantime = -1` ban used in scanner mitigation.
+
+For reverse and forward DNS checks, see [How to verify Googlebot]({{< relref "/policies/googlebot.md" >}}).

@@ -1,16 +1,52 @@
-{{- if hugo.IsMultilingual }}
-  {{- range .AllTranslations }}
+{{- if hugo.IsMultilingual -}}
+  {{- range .AllTranslations -}}
   <link rel="alternate" hreflang="{{ .Language.Locale | default .Language.Lang }}" href="{{ .Permalink }}" />
-  {{- end }}
-  <link rel="alternate" hreflang="x-default" href="{{ absURL "/" }}" />
-{{- end }}
+  {{- end -}}
+  {{- $xDefault := absURL "/" -}}
+  {{- if not .IsHome -}}
+    {{- range .AllTranslations -}}
+      {{- if eq .Language.Lang "en" -}}
+        {{- $xDefault = .Permalink -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  <link rel="alternate" hreflang="x-default" href="{{ $xDefault }}" />
+{{- end -}}
+
+{{- /* Hextra already provides canonical, Open Graph, Twitter cards and basic schema. */ -}}
+{{- $locale := .Language.Locale | default .Language.Lang -}}
+{{- $description := .Description | default .Site.Params.description -}}
+{{- if .IsHome -}}
+  {{- $website := dict "@context" "https://schema.org" "@type" "WebSite" "name" "f2b-api" "url" .Permalink "description" $description "inLanguage" $locale -}}
+  <script type="application/ld+json">{{ $website | jsonify | safeJS }}</script>
+  {{- $application := dict "@context" "https://schema.org" "@type" "SoftwareApplication" "name" "f2b-api" "url" .Permalink "applicationCategory" "DeveloperApplication" "operatingSystem" "Web" "description" $description -}}
+  <script type="application/ld+json">{{ $application | jsonify | safeJS }}</script>
+{{- else -}}
+  {{- $breadcrumbs := slice -}}
+  {{- $ancestors := .Ancestors.Reverse -}}
+  {{- $ancestors = $ancestors | append . -}}
+  {{- range $index, $page := $ancestors -}}
+    {{- $breadcrumbs = $breadcrumbs | append (dict "@type" "ListItem" "position" (add $index 1) "name" $page.Title "item" $page.Permalink) -}}
+  {{- end -}}
+  {{- if gt (len $breadcrumbs) 1 -}}
+    {{- $breadcrumb := dict "@context" "https://schema.org" "@type" "BreadcrumbList" "itemListElement" $breadcrumbs -}}
+    <script type="application/ld+json">{{ $breadcrumb | jsonify | safeJS }}</script>
+  {{- end -}}
+  {{- if eq .Section "data" -}}
+    {{- $dataset := dict "@context" "https://schema.org" "@type" "Dataset" "@id" (printf "%s#dataset" .Permalink) "name" (.Params.datasetname | default "Fail2ban IP observation dataset") "description" (.Params.datasetdescription | default $description) "url" .Permalink "isAccessibleForFree" true "inLanguage" $locale "creator" (dict "@type" "Person" "name" "haturatu" "url" "https://github.com/haturatu") "measurementTechnique" "Periodic Fail2ban ban-list snapshots" "variableMeasured" (slice "IP address" "Collection source" "Fail2ban jail" "First observed time" "Last observed time" "Ban status" "Country" "ASN") -}}
+    <script type="application/ld+json">{{ $dataset | jsonify | safeJS }}</script>
+  {{- else if or (eq .Section "policies") (eq .Section "api") -}}
+    {{- $article := dict "@context" "https://schema.org" "@type" "TechArticle" "headline" .Title "description" $description "url" .Permalink "mainEntityOfPage" .Permalink "inLanguage" $locale "author" (dict "@type" "Person" "name" "haturatu" "url" "https://github.com/haturatu") -}}
+    <script type="application/ld+json">{{ $article | jsonify | safeJS }}</script>
+  {{- end -}}
+{{- end -}}
 <script>
   document.addEventListener(
     "click",
     function (event) {
       var link = event.target.closest(".hextra-language-options a");
       if (!link) return;
-      var match = (link.getAttribute("href") || "").match(/^\/(ja|en)(?:\/|$)/);
+      var match = (link.getAttribute("href") || "").match(/^\/(ja|en|ru|zh-cn|zh-tw)(?:\/|$)/);
       if (match)
         document.cookie =
           "lang=" + match[1] + "; path=/; max-age=31536000; samesite=lax";

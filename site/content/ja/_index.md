@@ -1,6 +1,7 @@
 ---
-title: "$ curl https://api.f2b.0xhw.com/v1/ips | jq"
-description: "Fail2ban が記録した IP の観測データと、遮断に使っている条件を公開しています。"
+title: "Fail2banのIP観測データを検索する"
+heroTitle: "$ curl https://api.f2b.0xhw.com/v1/ips | jq"
+description: "複数のサーバーでFail2banが記録したIPv4・IPv6を検索。Jail別の検知条件、観測時刻、国・ASN別の統計、公開REST APIの使い方を紹介します。"
 toc: false
 ---
 
