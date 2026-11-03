@@ -42,3 +42,5 @@ description: "现有六个 jail 的检测窗口、命中次数与封禁时长。
 - `oci`：验证解析得到的名称以 `googlebot.com` 或 `google.com` 结尾。
 
 `oci` 只检查反向解析名称，并未进一步验证正向解析是否返回原始 IP，所以两种校验的严格程度不同。封禁时长沿用现有的极长但有限的值，而非扫描器缓解中使用的永久 `bantime = -1` 封禁。
+
+反向和正向 DNS 的具体操作见[如何验证 Googlebot]({{< relref "/policies/googlebot.md" >}})。

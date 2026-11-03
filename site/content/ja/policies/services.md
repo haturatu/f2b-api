@@ -48,3 +48,5 @@ description: "SSH、メール、HTTP、再犯、偽装 Googlebot の検知回数
 この二つは判定の厳しさが違います。特に後者は正引きで元の IP との一致までは確認していません。
 
 BAN 期間の 99,999 週間は非常に長いものの、あくまで有限の値です。スキャナー対策の `bantime = -1` による永久 BAN とは違います。
+
+Googlebot の逆引き・正引きDNSの確認手順は、[Googlebotの確認方法]({{< relref "/policies/googlebot.md" >}})にまとめました。
