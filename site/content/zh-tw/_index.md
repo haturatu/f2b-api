@@ -1,6 +1,7 @@
 ---
-title: "可搜尋的 Fail2ban 觀測資料。"
-description: "由多個收集來源記錄的公開封鎖觀測資料，以及其背後的偵測政策。"
+title: "查詢 Fail2ban IP 觀測紀錄與偵測資料"
+heroTitle: "可搜尋的 Fail2ban 觀測資料。"
+description: "查詢多台伺服器的 Fail2ban IPv4、IPv6 觀測紀錄，瞭解 Jail 偵測規則、觀測時間、國家與 ASN 統計及公開 REST API。"
 toc: false
 ---
 

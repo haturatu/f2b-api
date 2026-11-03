@@ -1,6 +1,7 @@
 ---
-title: "Fail2ban 观测记录，皆可检索。"
-description: "由多个采集源记录的公开封禁观测数据，以及其背后的检测策略。"
+title: "查询 Fail2ban IP 观测记录与检测数据"
+heroTitle: "Fail2ban 观测记录，皆可检索。"
+description: "查询多台服务器上的 Fail2ban IPv4、IPv6 观测记录，了解 jail 检测规则、观测时间、国家与 ASN 统计及公开 REST API。"
 toc: false
 ---
 

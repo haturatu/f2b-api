@@ -1,6 +1,7 @@
 ---
-title: "Fail2ban observations, made searchable."
-description: "Public ban observations recorded by multiple collection sources, together with the detection policies behind them."
+title: "Search Fail2ban IP observations and detection data"
+heroTitle: "Fail2ban observations, made searchable."
+description: "Search IPv4 and IPv6 observations collected by Fail2ban across servers. Explore detection rules, jail history, country and ASN statistics, and a public REST API."
 toc: false
 ---
 
