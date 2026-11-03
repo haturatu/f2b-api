@@ -1,5 +1,5 @@
 baseURL = "https://f2b.0xhw.com/"
-title = "f2b-api | Fail2ban IP observations"
+title = "f2b-api"
 defaultContentLanguage = "ja"
 defaultContentLanguageInSubdir = true
 enableRobotsTXT = true
@@ -30,7 +30,7 @@ disableKinds = ["taxonomy", "term", "RSS"]
 
 [languages]
   [languages.ja]
-    title = "Fail2banのIP検索・検知データ | f2b-api"
+    title = "f2b-api"
     label = "日本語"
     locale = "ja"
     contentDir = "content/ja"
@@ -76,7 +76,7 @@ disableKinds = ["taxonomy", "term", "RSS"]
         type = "theme-toggle"
 
   [languages.en]
-    title = "Fail2ban IP Lookup & Detection Data | f2b-api"
+    title = "f2b-api"
     label = "English"
     locale = "en"
     contentDir = "content/en"
@@ -122,7 +122,7 @@ disableKinds = ["taxonomy", "term", "RSS"]
         type = "theme-toggle"
 
   [languages.ru]
-    title = "Поиск IP и наблюдения Fail2ban | f2b-api"
+    title = "f2b-api"
     label = "Русский"
     locale = "ru"
     contentDir = "content/ru"
@@ -168,7 +168,7 @@ disableKinds = ["taxonomy", "term", "RSS"]
         type = "theme-toggle"
 
   [languages.zh-cn]
-    title = "Fail2ban IP 查询与检测数据 | f2b-api"
+    title = "f2b-api"
     label = "简体中文"
     locale = "zh-CN"
     contentDir = "content/zh-cn"
@@ -214,7 +214,7 @@ disableKinds = ["taxonomy", "term", "RSS"]
         type = "theme-toggle"
 
   [languages.zh-tw]
-    title = "Fail2ban IP 查詢與偵測資料 | f2b-api"
+    title = "f2b-api"
     label = "繁體中文"
     locale = "zh-TW"
     contentDir = "content/zh-tw"
